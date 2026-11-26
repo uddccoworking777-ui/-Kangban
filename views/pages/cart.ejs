@@ -1,0 +1,46 @@
+<%- include('../partials/head') %>
+<div class="container page">
+  <ol class="steps"><li class="on">購物車</li><li>填寫資料</li><li>完成訂購</li></ol>
+  <% if (!lines.length) { %>
+    <div class="empty"><h1 class="h2">您的購物車是空的</h1><p class="muted">快去挑選適合您的健康好物吧！</p><a href="/shop" class="btn btn-primary">繼續購物</a></div>
+    <% if (suggestions.length) { %><h2>推薦商品</h2><div class="grid products"><% suggestions.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %></div><% } %>
+  <% } else { %>
+    <div class="cart-layout">
+      <div class="cart-lines">
+        <h1 class="h2">購物車</h1>
+        <% lines.forEach(l => { %>
+          <div class="cart-line" data-line="<%= l.product.id %>">
+            <a href="<%= slug(l.product) %>"><img src="<%= l.product.image %>" alt="" width="88" height="88"></a>
+            <div class="cl-info"><a href="<%= slug(l.product) %>"><%= l.product.name %></a><span class="muted"><%= money(l.product.price) %></span></div>
+            <form action="/shop/cart/update" method="post" class="qty" data-cart-qty>
+              <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="product_id" value="<%= l.product.id %>">
+              <button type="button" data-qty="-1" aria-label="減少">−</button>
+              <input type="number" name="set_qty" value="<%= l.qty %>" min="0" max="999" aria-label="數量">
+              <button type="button" data-qty="1" aria-label="增加">＋</button>
+            </form>
+            <strong class="cl-sub" data-line-sub><%= money(l.subtotal) %></strong>
+            <form action="/shop/cart/update" method="post" data-cart-remove>
+              <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="product_id" value="<%= l.product.id %>"><input type="hidden" name="set_qty" value="0">
+              <button class="icon-btn" aria-label="移除"><svg><use href="#i-close"/></svg></button>
+            </form>
+          </div>
+        <% }) %>
+        <a href="/shop" class="btn btn-ghost">← 繼續購物</a>
+      </div>
+      <aside class="summary">
+        <h3>訂單摘要</h3>
+        <% const gap = Math.max(0, freeShip - subtotal); %>
+        <div class="ship-progress" data-ship-progress data-threshold="<%= freeShip %>">
+          <p data-ship-msg><%- gap ? `再買 <b>${money(gap)}</b> 即可免運` : '已達免運門檻 ✓' %></p>
+          <div class="bar"><span style="width:<%= Math.min(100, subtotal / freeShip * 100) %>%"></span></div>
+        </div>
+        <div class="row"><span>小計</span><span data-subtotal><%= money(subtotal) %></span></div>
+        <div class="row"><span>運費（宅配）</span><span data-fee><%= fee ? money(fee) : '免運' %></span></div>
+        <div class="row total"><span>總計</span><span data-total><%= money(subtotal + fee) %></span></div>
+        <p class="muted small">單筆滿 <%= money(freeShip) %> 免運；運費依結帳時選擇的配送方式計算。</p>
+        <a href="/shop/checkout" class="btn btn-primary btn-lg btn-block">結帳</a>
+      </aside>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

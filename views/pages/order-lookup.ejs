@@ -1,0 +1,16 @@
+<%- include('../partials/head') %>
+<div class="container page auth">
+  <div class="box">
+    <h1 class="h2 center">訂單查詢</h1>
+    <p class="muted small center">不需要登入，輸入訂單編號和下單時填寫的 Email 即可查詢訂單狀態與物流單號。</p>
+    <% if (error) { %><div class="alert"><%= error %></div><% } %>
+    <form method="post">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label>訂單編號<input name="order_no" value="<%= form.order_no || '' %>" placeholder="例：S00012" required autocomplete="off"></label>
+      <label>Email<input type="email" name="email" value="<%= form.email || '' %>" required autocomplete="email"></label>
+      <button class="btn btn-primary btn-block btn-lg">查詢</button>
+    </form>
+    <p class="center small muted">會員可以到 <a href="/my">我的帳戶</a> 查看所有訂單。</p>
+  </div>
+</div>
+<%- include('../partials/foot') %>

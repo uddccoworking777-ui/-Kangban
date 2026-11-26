@@ -1,0 +1,33 @@
+<%- include('_top') %>
+<form method="post" class="settings">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% groups.forEach(([gname, fields]) => { %>
+    <div class="card" id="<%= gname === 'Google 匯入' ? 'google' : '' %>">
+      <h2><%= gname %></h2>
+      <% if (gname === 'Google 匯入') { %>
+        <details class="help"><summary>怎麼取得 Google API 金鑰／服務帳戶？</summary>
+          <ol class="small">
+            <li>到 <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> 建立（或選擇）一個專案。</li>
+            <li>左側選單「API 和服務 → 程式庫」，搜尋 <b>Google Sheets API</b>，按「啟用」。</li>
+            <li><b>方法 A（簡單，試算表需公開檢視）：</b>「API 和服務 → 憑證 → 建立憑證 → API 金鑰」，複製金鑰貼到下方。建議在金鑰設定中「限制 API」只允許 Google Sheets API。試算表右上「共用」→「知道連結的任何人」→「檢視者」。</li>
+            <li><b>方法 B（推薦，試算表保持私人）：</b>「憑證 → 建立憑證 → 服務帳戶」，建立後進入該服務帳戶 →「金鑰」→「新增金鑰 → JSON」，會下載一個 .json 檔。用記事本打開，把全部內容貼到下方。然後在試算表按「共用」，把服務帳戶的 Email（xxx@xxx.iam.gserviceaccount.com）加為「檢視者」。</li>
+            <li>兩種都填時，優先使用服務帳戶。</li>
+          </ol>
+        </details>
+      <% } %>
+      <div class="grid2">
+        <% fields.forEach(([key, label, type]) => { const v = s[key] || ''; %>
+          <label class="<%= type === 'textarea' || type === 'secret' ? 'full' : '' %>"><%= label %>
+            <% if (type === 'textarea') { %><textarea name="<%= key %>" rows="4"><%= v %></textarea>
+            <% } else if (type === 'secret') { %><textarea name="<%= key %>" rows="<%= v ? 2 : 5 %>" class="mono" placeholder='{"type": "service_account", ...}'><%= v ? '__KEEP__' : '' %></textarea><% if (v) { %><span class="muted small">已設定（<%= (() => { try { return JSON.parse(v).client_email } catch { return '' } })() %>）。要更換請貼上新的 JSON；要移除請清空。</span><% } %>
+            <% } else if (type === 'password') { %><input type="password" name="<%= key %>" value="<%= v ? '__KEEP__' : '' %>" autocomplete="off"><% if (v) { %><span class="muted small">已設定。要移除請清空。</span><% } %>
+            <% } else { %><input type="<%= type || 'text' %>" name="<%= key %>" value="<%= v %>"><% } %>
+          </label>
+        <% }) %>
+      </div>
+      <% if (gname === 'Google 匯入') { %><button class="btn btn-sm btn-ghost" formaction="/admin/settings/test-google" <%= s.google_api_key || s.google_service_account ? '' : 'disabled' %>>測試連線（用已儲存的設定）</button><% } %>
+    </div>
+  <% }) %>
+  <div class="sticky-save"><button class="btn btn-primary">儲存設定</button></div>
+</form>
+<%- include('_bottom') %>

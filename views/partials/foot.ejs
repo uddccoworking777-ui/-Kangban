@@ -1,0 +1,59 @@
+</main>
+<% if (E.show('service')) { %>
+<section class="service-strip" aria-label="購物保障">
+  <%- E.bar('service', '購物保障列（每頁底部）') %>
+  <div class="container service-grid">
+    <% [['i-tag','衛福部許可證商品','醫療器材皆可查詢許可證字號'],['i-truck','滿 NT${{free_shipping_threshold}} 免運','付款後 {{ship_days}} 個工作天出貨'],['i-return','7 天鑑賞期','未拆封商品安心退換'],['i-line','專人選購諮詢','尺寸、用法都可以問']].forEach(([ic, t, d], i) => { %>
+      <div><svg><use href="#<%= ic %>"/></svg><%- E.text(`service.${i}.title`, t, 'b') %><%- E.text(`service.${i}.text`, d, 'span') %></div>
+    <% }) %>
+  </div>
+</section>
+<% } else { %><%- E.stub('service', '購物保障列（每頁底部）') %><% } %>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-about">
+      <img src="/img/logo.webp" alt="<%= siteName %>" width="120" height="48" class="footer-logo">
+      <%- E.text('footer.slogan', '讓健康，成為生活的日常', 'p', 'footer-slogan') %>
+      <p class="small">客服專線 <a href="tel:<%= settings.phone.replace(/[^0-9+]/g, '') %>"><%= settings.phone %></a><br><%= settings.service_hours %><br>Email <a href="mailto:<%= settings.email %>"><%= settings.email %></a></p>
+      <div class="social">
+        <a href="<%= settings.line_url || '/contactus' %>" aria-label="LINE 官方帳號" target="_blank" rel="noopener"><svg><use href="#i-line"/></svg></a>
+        <% if (settings.facebook_url) { %><a href="<%= settings.facebook_url %>" aria-label="Facebook" target="_blank" rel="noopener"><svg><use href="#i-fb"/></svg></a><% } %>
+        <% if (settings.instagram_url) { %><a href="<%= settings.instagram_url %>" aria-label="Instagram" target="_blank" rel="noopener"><svg><use href="#i-ig"/></svg></a><% } %>
+      </div>
+    </div>
+    <div>
+      <h4>商品分類</h4>
+      <% categories.filter(c => !c.parentId).forEach(c => { %><a href="<%= catUrl(c) %>"><%= c.name %></a><% }) %>
+      <a href="/shop">所有商品</a>
+    </div>
+    <div>
+      <%- E.text('footer.col1', '客戶服務', 'h4') %>
+      <% menus.footer1.forEach(m => { %><a href="<%= m.url %>" <%- m.new_tab ? 'target="_blank" rel="noopener"' : '' %>><%= m.label %></a><% }) %>
+    </div>
+    <div>
+      <%- E.text('footer.col2', '購物說明', 'h4') %>
+      <% menus.footer2.forEach(m => { %><a href="<%= m.url %>" <%- m.new_tab ? 'target="_blank" rel="noopener"' : '' %>><%= m.label %></a><% }) %>
+    </div>
+    <div>
+      <h4>付款方式</h4>
+      <div class="pay-list"><span>VISA</span><span>MasterCard</span><span>JCB</span><span>ATM 轉帳</span><span>超商取貨付款</span></div>
+      <h4 class="mt">配送方式</h4>
+      <div class="pay-list"><span>宅配到府</span><span>超商取貨</span></div>
+    </div>
+  </div>
+  <div class="container footer-legal">
+    <p><strong><%= settings.company_name %></strong>｜統一編號 <%= settings.tax_id %>｜醫療器材販賣業藥商許可執照 <%= settings.license_no %></p>
+    <p>地址 <%= settings.address %>｜消費者諮詢專線 <%= settings.phone %></p>
+    <p class="footer-note">本網站販售之醫療器材均領有衛生福利部醫療器材許可證。使用前請詳閱說明書及注意事項；如有身體不適，請諮詢醫師或藥師。</p>
+  </div>
+  <div class="footer-bottom"><div class="container">© <%= year %> <%= siteName %>. All rights reserved.</div></div>
+</footer>
+<div class="toast" role="status" aria-live="polite" hidden></div>
+<div class="floaters">
+  <a href="<%= settings.line_url || '/contactus' %>" class="float-line" <%= settings.line_url ? 'target=_blank rel=noopener' : '' %> aria-label="LINE 客服"><svg><use href="#i-line"/></svg><span>LINE 客服</span></a>
+  <button class="float-top" data-to-top aria-label="回到頂端" hidden>↑</button>
+</div>
+<script src="<%= asset('js/site.js') %>" defer></script>
+<%- include('cms-toolbar') %>
+</body>
+</html>

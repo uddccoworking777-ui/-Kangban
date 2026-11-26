@@ -1,0 +1,42 @@
+<%- include('_top', { actions: `<a class="btn" href="/admin/products.csv">匯出 CSV</a><a class="btn" href="/admin/import">匯入</a><a class="btn btn-primary" href="/admin/products/new">新增商品</a>` }) %>
+<% const sortLink = (k, label) => { const q = new URLSearchParams(query); const cur = query.sort === k; q.set('sort', k); q.set('dir', cur && query.dir !== 'desc' ? 'desc' : 'asc'); q.delete('page'); return `<a href="?${q}">${label}${cur ? (query.dir === 'desc' ? ' ↓' : ' ↑') : ''}</a>`; }; %>
+<div class="tabs">
+  <% [['', '全部'], ['published', '上架中'], ['draft', '已下架'], ['low', '低庫存'], ['out', '已售完']].forEach(([k, v]) => { %><a href="?<%= k ? 'status=' + k : '' %>" class="<%= (query.status || '') === k ? 'on' : '' %>"><%= v %></a><% }) %>
+</div>
+<form class="filters" method="get">
+  <% if (query.status) { %><input type="hidden" name="status" value="<%= query.status %>"><% } %>
+  <input type="search" name="q" value="<%= query.q || '' %>" placeholder="商品名稱或貨號">
+  <select name="category" aria-label="分類"><option value="">分類：全部</option><% cats.forEach(c => { %><option value="<%= c.id %>" <%= String(query.category) === String(c.id) ? 'selected' : '' %>><%= c.name %></option><% }) %></select>
+  <button class="btn">篩選</button>
+</form>
+<form method="post" action="/admin/products/bulk" class="card flush" data-bulk>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="back" value="?<%= new URLSearchParams(query) %>">
+  <div class="bulk-bar" hidden>
+    已選 <b data-bulk-count>0</b> 項
+    <button name="action" value="publish" class="btn btn-sm">上架</button>
+    <button name="action" value="unpublish" class="btn btn-sm">下架</button>
+    <button name="action" value="delete" class="btn btn-sm btn-danger" data-confirm="確定刪除選取的商品？已成立的訂單不受影響。">刪除</button>
+  </div>
+  <% if (!products.length) { %><p class="empty">沒有商品。<a href="/admin/products/new">新增商品</a> 或 <a href="/admin/import">從 Google 試算表匯入</a></p><% } else { %>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th class="chk"><input type="checkbox" data-check-all aria-label="全選"></th><th></th><th><%- sortLink('name', '商品') %></th><th>分類</th><th class="r"><%- sortLink('price', '售價') %></th><th class="r"><%- sortLink('stock', '庫存') %></th><th class="r"><%- sortLink('sold', '已售') %></th><th>狀態</th></tr></thead>
+    <tbody>
+      <% products.forEach(p => { %>
+        <tr class="row-link" data-href="/admin/products/<%= p.id %>">
+          <td class="chk"><input type="checkbox" name="ids" value="<%= p.id %>" aria-label="選取 <%= p.name %>"></td>
+          <td class="thumb"><img src="<%= p.image %>" alt="" loading="lazy"></td>
+          <td><a href="/admin/products/<%= p.id %>"><%= p.name %></a><div class="faint small"><%= p.sku || '無貨號' %><% if (p.licenseNo) { %>・醫療器材<% } %><% if (p.popular) { %>・熱門<% } %></div></td>
+          <td class="small muted"><%= p.categoryIds.map(id => (cats.find(c => c.id === id) || {}).name).filter(Boolean).join('、') %></td>
+          <td class="r nowrap num"><%= money(p.price) %></td>
+          <td class="r"><% if (!p.trackStock) { %><span class="faint small">不追蹤</span><% } else { %><input type="number" class="stock-input num <%= p.stock <= 0 ? 'neg' : p.stock <= Number(settings.low_stock_threshold) ? 'warn' : '' %>" value="<%= p.stock %>" data-stock="<%= p.id %>" aria-label="<%= p.name %> 庫存"><% } %></td>
+          <td class="r num muted"><%= p.soldCount %></td>
+          <td><span class="st <%= p.published ? 'st-on' : 'st-off' %>"><%= p.published ? '上架中' : '已下架' %></span></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table></div><% } %>
+</form>
+<p class="hint">庫存欄可以直接修改，按 Enter 或離開欄位即自動儲存。</p>
+<%- include('_pager') %>
+<%- include('_bottom') %>

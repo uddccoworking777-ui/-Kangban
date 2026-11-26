@@ -1,0 +1,9 @@
+<%- include('_top') %>
+<div class="card flush">
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>時間</th><th>人員</th><th>動作</th><th>內容</th></tr></thead>
+    <tbody><% rows.forEach(l => { %><tr><td class="nowrap small"><%= l.created_at %></td><td><%= l.admin_name %></td><td><%= l.action %></td><td class="small"><%= l.detail %></td></tr><% }) %></tbody>
+  </table></div>
+</div>
+<%- include('_pager') %>
+<%- include('_bottom') %>

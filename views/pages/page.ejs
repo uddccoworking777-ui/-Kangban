@@ -1,0 +1,4 @@
+<%- include('../partials/head') %>
+<% if (typeof faqLd !== 'undefined' && faqLd.length && settings.aeo_faq_ld !== '0') { %><script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqLd.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }).replace(/</g, '\\u003c') %></script><% } %>
+<%- include('../partials/blocks') %>
+<%- include('../partials/foot') %>

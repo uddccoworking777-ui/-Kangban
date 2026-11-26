@@ -1,0 +1,12 @@
+<%- include('_top', { title: `「${q}」的搜尋結果` }) %>
+<% if (!orders.length && !products.length && !customers.length) { %><div class="card"><p class="empty">找不到符合「<%= q %>」的訂單、商品或顧客</p></div><% } %>
+<% if (orders.length) { %><div class="card flush result-group"><div class="card-head"><h2>訂單（<%= orders.length %>）</h2></div><div class="table-wrap"><table class="table"><tbody>
+  <% orders.forEach(o => { %><tr class="row-link" data-href="/admin/orders/<%= o.id %>"><td><a href="/admin/orders/<%= o.id %>"><b><%= o.name %></b></a></td><td><%= o.customer_name %></td><td class="muted"><%= o.created_at.slice(0, 10) %></td><td><%- include('_status', { s: o.status }) %></td><td class="r num"><%= money(o.total) %></td></tr><% }) %>
+</tbody></table></div></div><% } %>
+<% if (products.length) { %><div class="card flush result-group"><div class="card-head"><h2>商品（<%= products.length %>）</h2></div><div class="table-wrap"><table class="table"><tbody>
+  <% products.forEach(p => { %><tr class="row-link" data-href="/admin/products/<%= p.id %>"><td><a href="/admin/products/<%= p.id %>"><%= p.name %></a></td><td class="muted"><%= p.sku || '' %></td><td class="r num"><%= money(p.price) %></td><td class="r num"><%= p.track_stock ? '庫存 ' + p.stock : '不追蹤庫存' %></td></tr><% }) %>
+</tbody></table></div></div><% } %>
+<% if (customers.length) { %><div class="card flush result-group"><div class="card-head"><h2>顧客（<%= customers.length %>）</h2></div><div class="table-wrap"><table class="table"><tbody>
+  <% customers.forEach(c => { %><tr class="row-link" data-href="/admin/customers/<%= c.id %>"><td><a href="/admin/customers/<%= c.id %>"><%= c.name %></a></td><td><%= c.email %></td><td class="muted"><%= c.phone || '' %></td></tr><% }) %>
+</tbody></table></div></div><% } %>
+<%- include('_bottom') %>

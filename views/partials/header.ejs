@@ -1,0 +1,95 @@
+<%- include('icons') %>
+<% const topCats = categories.filter(c => !c.parentId);
+   const hot = String(settings.hot_keywords || '').split(/[,，、]/).map(s => s.trim()).filter(Boolean).slice(0, 6); %>
+<header class="site-header">
+  <div class="util-bar">
+    <div class="container util-inner">
+      <span class="util-msg"><%= settings.announcement %></span>
+      <nav class="util-links" aria-label="服務連結">
+        <% menus.util.forEach(m => { %><a href="<%= m.url %>" <%- m.new_tab ? 'target="_blank" rel="noopener"' : '' %>><%= m.label %></a><% }) %>
+        <% if (!settings.phone.startsWith('【')) { %><a href="tel:<%= settings.phone.replace(/[^0-9+]/g, '') %>">客服專線 <%= settings.phone %></a><% } %>
+      </nav>
+    </div>
+  </div>
+
+  <div class="container header-main">
+    <button class="icon-btn only-mobile" data-drawer-open aria-label="開啟選單"><svg><use href="#i-menu"/></svg></button>
+    <a href="/" class="logo" aria-label="<%= siteName %> 首頁"><img src="/img/logo.webp" alt="<%= siteName %>" width="132" height="53"></a>
+
+    <div class="search-wrap">
+      <form action="/shop" method="get" class="search-box" role="search" autocomplete="off">
+        <input type="search" name="search" placeholder="搜尋商品，例如：護膝、血壓計" aria-label="搜尋商品" data-search-input value="<%= typeof search === 'string' ? search : '' %>">
+        <button aria-label="搜尋"><svg><use href="#i-search"/></svg></button>
+        <div class="search-results" data-search-results hidden></div>
+      </form>
+      <% if (hot.length) { %>
+        <div class="hot-words"><span>熱門搜尋</span><% hot.forEach(w => { %><a href="/shop?search=<%= encodeURIComponent(w) %>"><%= w %></a><% }) %></div>
+      <% } %>
+    </div>
+
+    <div class="header-actions">
+      <a href="/shop/wishlist" class="act" aria-label="收藏清單"><span class="act-ico"><svg><use href="#i-heart"/></svg><span class="badge" data-wishlist-count <%= wishlistCount ? '' : 'hidden' %>><%= wishlistCount %></span></span><span class="act-txt">收藏</span></a>
+      <a href="/shop/cart" class="act" aria-label="購物車"><span class="act-ico"><svg><use href="#i-cart"/></svg><span class="badge" data-cart-count <%= cartCount ? '' : 'hidden' %>><%= cartCount %></span></span><span class="act-txt">購物車</span></a>
+      <% if (user || adminUser) { %>
+        <div class="dropdown dropdown-right">
+          <button class="act dropdown-toggle" aria-expanded="false"><span class="act-ico"><svg><use href="#i-user"/></svg><% if (adminUser) { %><span class="admin-dot" title="已登入管理後台"></span><% } %></span><span class="act-txt"><%= (user || adminUser).name.slice(0, 6) %></span></button>
+          <div class="dropdown-menu">
+            <% if (adminUser) { %>
+              <a href="/admin" class="menu-admin"><svg><use href="#i-cog"/></svg>管理後台</a>
+              <% if (user) { %><div class="menu-sep"></div><% } %>
+            <% } %>
+            <% if (user) { %>
+              <a href="/my">會員中心</a>
+              <a href="/my#orders">我的訂單</a>
+            <% } %>
+            <div class="menu-sep"></div>
+            <a href="/web/session/logout">登出</a>
+          </div>
+        </div>
+      <% } else { %>
+        <a href="/web/login" class="act"><span class="act-ico"><svg><use href="#i-user"/></svg></span><span class="act-txt">登入／註冊</span></a>
+      <% } %>
+    </div>
+  </div>
+
+  <nav class="cat-nav" aria-label="商品分類">
+    <div class="container cat-nav-inner">
+      <div class="dropdown mega">
+        <button class="dropdown-toggle all-cats" aria-expanded="false"><svg><use href="#i-menu"/></svg>全部商品分類</button>
+        <div class="dropdown-menu">
+          <div class="mega-grid">
+            <% topCats.forEach(c => { %>
+              <a href="<%= catUrl(c) %>" class="mega-item"><img src="<%= c.icon %>" alt="" width="40" height="40" loading="lazy"><span><b><%= c.name %></b><% if (c.description) { %><small><%= c.description %></small><% } %></span></a>
+            <% }) %>
+          </div>
+          <a href="/shop" class="mega-all">查看所有商品 ›</a>
+        </div>
+      </div>
+      <div class="cat-links">
+        <% topCats.forEach(c => { %><a href="<%= catUrl(c) %>" class="<%= typeof category !== 'undefined' && category && category.id === c.id ? 'on' : '' %>"><%= c.name %></a><% }) %>
+      </div>
+      <div class="cat-nav-end">
+        <% menus.header.forEach(m => { if (m.children.length) { %>
+          <div class="dropdown dropdown-right">
+            <button class="dropdown-toggle" aria-expanded="false"><%= m.label %> <svg class="chev"><use href="#i-chev"/></svg></button>
+            <div class="dropdown-menu"><% m.children.forEach(c => { %><a href="<%= c.url %>" <%- c.new_tab ? 'target="_blank" rel="noopener"' : '' %>><%= c.label %></a><% }) %></div>
+          </div>
+        <% } else { %><a href="<%= m.url %>" <%- m.new_tab ? 'target="_blank" rel="noopener"' : '' %>><%= m.label %></a><% } }) %>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<div class="drawer" hidden>
+  <div class="drawer-panel">
+    <div class="drawer-head"><img src="/img/logo.webp" alt="<%= siteName %>" height="40"><button class="icon-btn" data-drawer-close aria-label="關閉選單"><svg><use href="#i-close"/></svg></button></div>
+    <a href="/shop">所有商品</a>
+    <div class="drawer-label">商品分類</div>
+    <% topCats.forEach(c => { %><a href="<%= catUrl(c) %>" class="drawer-cat"><img src="<%= c.icon %>" alt="" width="28" height="28" loading="lazy"><%= c.name %></a><% }) %>
+    <div class="drawer-label">服務</div>
+    <% [...menus.header.flatMap(m => m.children.length ? m.children : [m]), ...menus.util].filter((m, i, a) => a.findIndex(x => x.url === m.url) === i).forEach(m => { %><a href="<%= m.url %>"><%= m.label %></a><% }) %>
+    <% if (adminUser) { %><a href="/admin" class="drawer-admin">管理後台</a><% } %>
+    <% if (user) { %><a href="/my">會員中心</a><% } %>
+    <% if (user || adminUser) { %><a href="/web/session/logout">登出</a><% } else { %><a href="/web/login" class="btn btn-primary">登入／註冊</a><% } %>
+  </div>
+</div>

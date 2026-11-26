@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= title %> | <%= siteName %></title>
+<meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : '嚴選實用、安心的健康照護與居家保健用品。' %>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<%= asset('css/site.css') %>">
+<link rel="icon" href="/img/logo.webp">
+<link rel="canonical" href="<%= canonical %>">
+<meta property="og:type" content="<%= typeof product !== 'undefined' ? 'product' : 'website' %>">
+<meta property="og:site_name" content="<%= siteName %>">
+<meta property="og:title" content="<%= title %> | <%= siteName %>">
+<meta property="og:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : '嚴選實用、安心的健康照護與居家保健用品。' %>">
+<meta property="og:image" content="<%= (typeof ogImage !== 'undefined' && ogImage.startsWith('http')) ? ogImage : siteUrl + (typeof ogImage !== 'undefined' ? ogImage : '/img/hero.jpg') %>">
+<meta name="theme-color" content="#43594F">
+<% if (path === '/' && settings.aio_ld !== '0') { %><script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebSite', name: siteName, url: siteUrl, inLanguage: 'zh-Hant-TW', potentialAction: { '@type': 'SearchAction', target: siteUrl + '/shop?search={search_term_string}', 'query-input': 'required name=search_term_string' } }).replace(/</g, '\\u003c') %></script><% } %>
+<% if (settings.geo_llms !== '0') { %><link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt"><% } %>
+<script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: settings.company_name.startsWith('【') ? siteName : settings.company_name, url: siteUrl, logo: siteUrl + '/img/logo.webp', contactPoint: settings.phone.startsWith('【') ? undefined : { '@type': 'ContactPoint', telephone: settings.phone, contactType: 'customer service', areaServed: 'TW', availableLanguage: 'zh-Hant' } }).replace(/</g, '\\u003c') %></script>
+<meta name="csrf-token" content="<%= csrf %>">
+</head>
+<body>
+<a class="skip" href="#main">跳至內容</a>
+<%- include('header') %>
+<% if (flash) { %><div class="flash flash-<%= flash.type %>" role="status"><div class="container"><%= flash.text %></div></div><% } %>
+<main id="main">

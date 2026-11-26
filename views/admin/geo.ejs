@@ -1,0 +1,50 @@
+<%- include('_top', { actions: `<a class="btn" href="/llms.txt" target="_blank">查看 llms.txt</a><a class="btn" href="/robots.txt" target="_blank">查看 robots.txt</a>` }) %>
+<%- include('_geo-tabs') %>
+<% const tone = (n) => n >= 85 ? 'st-completed' : n >= 60 ? 'st-pending' : 'st-cancelled'; %>
+
+<p class="muted small" style="margin:-4px 0 14px">AI 搜尋優化的目的是<b>提高被 AI 引用的機會</b>。這裡分成三類，各自有分數、檢查項目、自動補齊和設定，可以分開調整。分數代表網站「自己能做的部分」完成了多少：分數越高，被引用的機會越大，但無法保證，因為 AI 也會參考網站以外的因素。實際有沒有被引用，請看「成效追蹤」。</p>
+
+<div class="geo-cats">
+  <% Object.values(report.cats).forEach(c => { const open = c.items.filter(i => i.issues.length).length + c.site.filter(x => !x.ok).length; %>
+    <a class="card geo-cat-card" href="/admin/geo?tab=<%= c.key %>">
+      <div class="geo-cat-top"><span class="geo-tag"><%= c.name %></span><span class="muted small"><%= c.full %></span></div>
+      <div class="geo-big"><b class="<%= tone(c.score) %>"><%= c.score %></b><span>／100</span></div>
+      <div class="geo-bar"><span style="width:<%= c.score %>%"></span></div>
+      <p class="geo-short"><%= c.short %></p>
+      <p class="small muted" style="margin:0 0 6px"><%= c.goal %></p>
+      <p class="small muted" style="margin:0"><%= open ? `${open} 項待改善` : '全部達標' %><%= c.fixable ? `・${c.fixable} 項可自動補齊` : '' %></p>
+      <span class="geo-go">前往調整 ›</span>
+    </a>
+  <% }) %>
+</div>
+
+<div class="cols">
+  <form class="card" method="post" action="/admin/geo/fix">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>三類一起自動補齊</h2>
+    <p class="small muted" style="margin-top:-6px">只補空白的欄位，不會覆蓋你自己寫的內容。想分開處理，請到各分頁。</p>
+    <div class="geo-opts">
+      <label class="inline"><input type="checkbox" name="targets" value="category" checked> GEO：分類介紹段落</label>
+      <label class="inline"><input type="checkbox" name="targets" value="summary" checked> AEO：商品重點摘要</label>
+      <label class="inline"><input type="checkbox" name="targets" value="faq" checked> AEO：商品常見問答</label>
+      <label class="inline"><input type="checkbox" name="targets" value="meta" checked> AIO：商品搜尋描述</label>
+      <label class="inline"><input type="checkbox" name="targets" value="pages" checked> AIO：頁面搜尋描述</label>
+    </div>
+    <button class="btn btn-primary" style="margin-top:12px">開始自動補齊</button>
+  </form>
+  <div class="card">
+    <h2>三類各管哪裡</h2>
+    <div class="table-wrap"><table class="table geo-compare">
+      <thead><tr><th>顧客的行為</th><th>出現的地方</th><th>對應</th></tr></thead>
+      <tbody>
+        <tr><td>問 ChatGPT「推薦一個護膝」</td><td>AI 的回答與參考來源</td><td><span class="geo-tag">GEO</span></td></tr>
+        <tr><td>搜尋「護膝尺寸怎麼量」</td><td>直接顯示的答案、語音助理</td><td><span class="geo-tag">AEO</span></td></tr>
+        <tr><td>用 Google 搜尋「助眠產品推薦」</td><td>Google 最上方的「AI 摘要」</td><td><span class="geo-tag">AIO</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="small muted" style="margin:10px 0 0">三類有部分重疊，例如清楚的商品說明對三類都有幫助；這裡依「主要影響哪一類」分開，方便你分別調整。</p>
+  </div>
+</div>
+<h2 class="geo-h">三類分別在做什麼</h2>
+<% Object.values(report.cats).forEach(c => { %><%- include('_geo-explain', { c, openExplain: false }) %><% }) %>
+<%- include('_bottom') %>

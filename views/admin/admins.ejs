@@ -1,0 +1,31 @@
+<%- include('_top') %>
+<div class="cols cols-wide">
+  <div class="card flush">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>姓名</th><th>Email</th><th>權限</th><th>狀態</th><th>最後登入</th><th></th></tr></thead>
+      <tbody><% rows.forEach(a => { %><tr>
+        <td><strong><%= a.name %></strong><% if (a.id === admin.id) { %> <span class="muted small">（你）</span><% } %></td>
+        <td><%= a.email %></td>
+        <td><form method="post" action="/admin/admins/<%= a.id %>" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="action" value="role">
+          <select name="role" data-autosubmit><option value="owner" <%= a.role === 'owner' ? 'selected' : '' %>>擁有者</option><option value="staff" <%= a.role === 'staff' ? 'selected' : '' %>>員工</option></select></form></td>
+        <td><span class="st <%= a.active ? 'st-on' : 'st-off' %>"><%= a.active ? '啟用' : '停用' %></span></td>
+        <td class="small"><%= a.last_login || '—' %></td>
+        <td class="nowrap r">
+          <% if (a.id !== admin.id) { %><form method="post" action="/admin/admins/<%= a.id %>" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button name="action" value="toggle" class="btn btn-sm btn-ghost"><%= a.active ? '停用' : '啟用' %></button></form><% } %>
+          <form method="post" action="/admin/admins/<%= a.id %>" class="inline-form" data-prompt-password><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="action" value="password"><input type="hidden" name="password"><button class="btn btn-sm btn-ghost">重設密碼</button></form>
+        </td>
+      </tr><% }) %></tbody>
+    </table></div>
+    <p class="muted small pad">「擁有者」可以使用所有功能；「員工」可以處理訂單、商品、客戶、訊息與匯入，但不能修改設定、管理員和查看操作紀錄。</p>
+  </div>
+  <form class="card" method="post" action="/admin/admins">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>新增管理員</h2>
+    <label>姓名<input name="name" required></label>
+    <label>Email<input type="email" name="email" required autocomplete="off"></label>
+    <label>初始密碼（至少 8 字元）<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+    <label>權限<select name="role"><option value="staff">員工</option><option value="owner">擁有者</option></select></label>
+    <button class="btn btn-primary btn-block">新增</button>
+  </form>
+</div>
+<%- include('_bottom') %>

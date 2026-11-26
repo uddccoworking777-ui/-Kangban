@@ -1,0 +1,30 @@
+<%- include('_top') %>
+<div class="cols cols-wide">
+  <div class="card flush">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Logo</th><th>品牌名稱</th><th class="r">排序</th><th class="r">商品數</th><th></th></tr></thead>
+      <tbody>
+        <% rows.forEach(b => { %><tr>
+          <td class="thumb wide"><% if (b.logo) { %><img src="<%= b.logo %>" alt=""><% } %></td>
+          <td><strong><%= b.name %></strong></td>
+          <td class="r"><%= b.sequence %></td>
+          <td class="r"><%= b.count %></td>
+          <td class="nowrap r"><a href="?edit=<%= b.id %>" class="btn btn-sm btn-ghost">編輯</a>
+            <form method="post" action="/admin/brands/<%= b.id %>/delete" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost danger" data-confirm="刪除品牌「<%= b.name %>」？">刪除</button></form></td>
+        </tr><% }) %>
+      </tbody>
+    </table></div>
+  </div>
+  <form class="card" method="post" enctype="multipart/form-data" action="/admin/brands?_csrf=<%= csrf %>">
+    <h2><%= edit ? '編輯品牌' : '新增品牌' %></h2>
+    <% const e = edit || { sequence: rows.length + 1 }; %>
+    <% if (edit) { %><input type="hidden" name="id" value="<%= e.id %>"><% } %>
+    <label>名稱 *<input name="name" value="<%= e.name || '' %>" required></label>
+    <label>排序<input type="number" name="sequence" value="<%= e.sequence %>"></label>
+    <% if (e.logo) { %><img src="<%= e.logo %>" alt="" class="preview wide"><input type="hidden" name="logo" value="<%= e.logo %>"><% } %>
+    <label>Logo（顯示在首頁「精選合作品牌」）<input type="file" name="logo_file" accept="image/*"></label>
+    <button class="btn btn-primary btn-block">儲存</button>
+    <% if (edit) { %><a href="/admin/brands" class="btn btn-ghost btn-block">取消</a><% } %>
+  </form>
+</div>
+<%- include('_bottom') %>

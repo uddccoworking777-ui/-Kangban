@@ -1,0 +1,95 @@
+<%- include('_top', { crumb: ['/admin/products', '商品'], actions: p.id ? `<a class="btn" href="/shop/p-${p.id}" target="_blank">在商店查看</a>` : '' }) %>
+<% const err = k => errors[k] ? `<span class="err">${errors[k]}</span>` : ''; %>
+<% if (Object.keys(errors).length) { %><div class="flash flash-error">請修正標示的欄位</div><% } %>
+<form method="post" enctype="multipart/form-data" action="<%= p.id ? '/admin/products/' + p.id : '/admin/products/new' %>?_csrf=<%= csrf %>" class="cols cols-wide" id="pform">
+  <div>
+    <div class="card">
+      <label>商品名稱<input name="name" value="<%= p.name %>" required><%- err('name') %></label>
+      <label>簡短說明<span class="hint">顯示在商品頁價格下方、列表搜尋結果</span><textarea name="description" rows="4"><%= p.description %></textarea></label>
+      <label>詳細介紹（選填）<span class="hint">顯示在「商品介紹」分頁，可使用 HTML</span><textarea name="description_html" rows="5" class="mono"><%= p.description_html %></textarea></label>
+    </div>
+    <div class="card">
+      <h2>圖片</h2>
+      <% if (p.images.length) { %>
+      <div class="img-grid">
+        <% p.images.forEach((u, i) => { %>
+          <div class="img-item <%= i === 0 ? 'is-main' : '' %>">
+            <img src="<%= u %>" alt="">
+            <input type="hidden" name="images" value="<%= u %>">
+            <label class="inline"><input type="radio" name="main_image" value="<%= u %>" <%= i === 0 ? 'checked' : '' %>> 主圖</label>
+            <label class="inline"><input type="checkbox" name="remove_images" value="<%= u %>"> 移除</label>
+          </div>
+        <% }) %>
+      </div><% } %>
+      <label>上傳圖片<span class="hint">可多選，每張 5MB 內，JPG／PNG／WebP，建議正方形 1000×1000</span><input type="file" name="image_files" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+      <label>或貼上圖片網址<span class="hint">每行一個，支援 Google 雲端硬碟分享連結</span><textarea name="image_urls" rows="2" class="mono" placeholder="https://"></textarea></label>
+    </div>
+    <div class="card">
+      <h2>價格與庫存</h2>
+      <div class="grid3">
+        <label>售價<input type="number" name="price" value="<%= p.price %>" min="0" step="1" required><%- err('price') %></label>
+        <label>原價<span class="hint">選填，高於售價時顯示刪除線</span><input type="number" name="compare_price" value="<%= p.compare_price ?? '' %>" min="0" step="1"></label>
+        <label>成本<span class="hint">選填，只有後台看得到</span><input type="number" name="cost" value="<%= p.cost ?? '' %>" min="0" step="1"></label>
+        <label>貨號 SKU<span class="hint">匯入時用來比對同一商品</span><input name="sku" value="<%= p.sku || '' %>"><%- err('sku') %></label>
+        <label>庫存<input type="number" name="stock" value="<%= p.stock %>" step="1"></label>
+        <label class="inline check-line" style="align-self:end"><input type="checkbox" name="track_stock" value="1" <%= p.track_stock ? 'checked' : '' %>> 追蹤庫存</label>
+      </div>
+      <% if (p.id) { %><p class="hint">累計售出 <%= p.sales || 0 %> 件（不含已取消訂單）</p><% } %>
+    </div>
+    <div class="card">
+      <h2>醫療器材資訊</h2>
+      <p class="hint" style="margin:-6px 0 12px">依食藥署規定，網路販售醫療器材須在商品頁揭露品名、許可證字號、許可證所有人及製造業者。勾選後會顯示在商品頁「規格與許可證」分頁。</p>
+      <label class="inline check-line"><input type="checkbox" name="is_medical" value="1" <%= p.is_medical || p.license_no ? 'checked' : '' %>> 這是醫療器材</label>
+      <div class="grid2">
+        <label>許可證字號<input name="license_no" value="<%= p.license_no || '' %>" placeholder="例：衛部醫器製壹字第000000號"><%- err('license_no') %></label>
+        <label>許可證所有人<input name="license_holder" value="<%= p.license_holder || '' %>"></label>
+        <label>製造業者<input name="manufacturer" value="<%= p.manufacturer || '' %>"></label>
+        <label>產地<input name="origin" value="<%= p.origin || '' %>" placeholder="台灣"></label>
+      </div>
+    </div>
+    <div class="card" id="geo">
+      <div class="card-head"><h2>AI 搜尋優化（GEO／AEO／AIO）</h2><% if (p.id) { %><button type="button" class="btn btn-sm" data-geo-suggest="<%= p.id %>">自動產生建議</button><% } %></div>
+      <p class="hint" style="margin:-6px 0 12px">這三欄會讓 ChatGPT、Gemini、Google AI 摘要等 AI 搜尋更容易正確介紹這個商品。<% if (settings.geo_auto === '1') { %>留空的話，儲存時會自動產生。<% } %></p>
+      <label>搜尋描述<span class="hint">Google 與 AI 搜尋結果顯示的說明，建議 70–150 字</span><textarea name="meta_description" rows="2" maxlength="300" data-count><%= p.meta_description || '' %></textarea></label>
+      <label>重點摘要<span class="hint">每行一點，顯示在商品頁價格下方，也是 AI 最常直接引用的段落</span><textarea name="summary" rows="4"><%= p.summary || '' %></textarea></label>
+      <label>商品常見問答<span class="hint">格式：「Q: 問題」換行「A: 回答」，每題之間空一行。顯示在商品頁「常見問答」分頁</span><textarea name="faq" rows="7" class="mono" placeholder="Q: 這個商品適合誰？&#10;A: ……"><%= p.faq || '' %></textarea></label>
+    </div>
+    <div class="card">
+      <h2>規格、尺寸與注意事項</h2>
+      <label>規格<span class="hint">每行一項，格式「名稱：內容」，例如「材質：彈性布料」</span><textarea name="spec" rows="4"><%= p.spec || '' %></textarea></label>
+      <label>尺寸對照表（選填）<span class="hint">有填寫時，商品頁會出現「查看尺寸對照表」按鈕。可使用 HTML 表格</span><textarea name="size_chart" rows="5" class="mono" data-size-chart><%= p.size_chart || '' %></textarea></label>
+      <button type="button" class="btn btn-sm" data-insert-size>插入尺寸表範本</button>
+      <label style="margin-top:12px">使用注意事項<span class="hint">每行一項，顯示在「使用注意事項」分頁</span><textarea name="precautions" rows="4"><%= p.precautions || '' %></textarea></label>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>發佈</h2>
+      <label class="inline check-line"><input type="checkbox" name="published" value="1" <%= p.published ? 'checked' : '' %>> 上架</label>
+      <label class="inline check-line"><input type="checkbox" name="featured" value="1" <%= p.featured ? 'checked' : '' %>> 熱門商品<span class="faint small">（首頁「最受歡迎」）</span></label>
+      <label>排序<span class="hint">數字越小越前面</span><input type="number" name="sequence" value="<%= p.sequence %>"></label>
+      <button class="btn btn-primary btn-block">儲存</button>
+      <% if (!p.id) { %><button class="btn btn-block" name="save_and_new" value="1">儲存並新增下一個</button><% } %>
+    </div>
+    <div class="card">
+      <h2>分類</h2>
+      <div class="check-list">
+        <% cats.forEach(c => { %><label class="inline <%= c.parent_id ? 'indent' : '' %>"><input type="checkbox" name="categories" value="<%= c.id %>" <%= p.categoryIds.includes(c.id) ? 'checked' : '' %>> <%= c.name %></label><% }) %>
+      </div>
+      <a href="/admin/categories" class="small">管理分類</a>
+    </div>
+    <div class="card">
+      <label>品牌<select name="brand_id"><option value="">（無）</option><% brands.forEach(b => { %><option value="<%= b.id %>" <%= p.brand_id === b.id ? 'selected' : '' %>><%= b.name %></option><% }) %></select></label>
+    </div>
+    <% if (p.id) { %>
+    <div class="danger-zone">
+      <button class="btn btn-sm" form="dup-form">複製商品</button>
+      <button class="btn btn-sm btn-danger" form="del-form" data-confirm="確定刪除「<%= p.name %>」？已成立的訂單不受影響。">刪除商品</button>
+    </div><% } %>
+  </div>
+</form>
+<% if (p.id) { %>
+  <form id="dup-form" method="post" action="/admin/products/<%= p.id %>/duplicate"><input type="hidden" name="_csrf" value="<%= csrf %>"></form>
+  <form id="del-form" method="post" action="/admin/products/<%= p.id %>/delete"><input type="hidden" name="_csrf" value="<%= csrf %>"></form>
+<% } %>
+<%- include('_bottom') %>

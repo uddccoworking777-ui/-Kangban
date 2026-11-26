@@ -1,0 +1,48 @@
+<%- include('_top', { actions: `<a class="btn" href="/admin/orders.csv?${new URLSearchParams(query)}">匯出 CSV</a>` }) %>
+<div class="tabs">
+  <a href="/admin/orders" class="<%= !query.status && !query.todo ? 'on' : '' %>">全部</a>
+  <a href="?todo=payment" class="<%= query.todo === 'payment' ? 'on' : '' %>">待確認付款</a>
+  <a href="?todo=ship" class="<%= query.todo === 'ship' ? 'on' : '' %>">待出貨</a>
+  <% ['shipped', 'completed', 'cancelled'].forEach(k => { %><a href="?status=<%= k %>" class="<%= query.status === k ? 'on' : '' %>"><%= ORDER_STATUS[k] %><span class="c"><%= counts[k] || 0 %></span></a><% }) %>
+</div>
+<form class="filters" method="get">
+  <% if (query.status) { %><input type="hidden" name="status" value="<%= query.status %>"><% } %>
+  <% if (query.todo) { %><input type="hidden" name="todo" value="<%= query.todo %>"><% } %>
+  <input type="search" name="q" value="<%= query.q || '' %>" placeholder="訂單編號、姓名、Email、電話">
+  <select name="payment" aria-label="付款狀態"><option value="">付款狀態：全部</option><% Object.entries(PAYMENT_STATUS).forEach(([k, v]) => { %><option value="<%= k %>" <%= query.payment === k ? 'selected' : '' %>><%= v %></option><% }) %></select>
+  <input type="date" name="from" value="<%= query.from || '' %>" aria-label="開始日期"><span class="faint">—</span><input type="date" name="to" value="<%= query.to || '' %>" aria-label="結束日期">
+  <button class="btn">篩選</button>
+  <% if (query.q || query.payment || query.from || query.to) { %><a class="btn btn-ghost" href="?<%= query.status ? 'status=' + query.status : query.todo ? 'todo=' + query.todo : '' %>">清除</a><% } %>
+</form>
+<form method="post" action="/admin/orders/bulk" class="card flush" data-bulk>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="back" value="?<%= new URLSearchParams(query) %>">
+  <div class="bulk-bar" hidden>
+    已選 <b data-bulk-count>0</b> 筆
+    <button name="action" value="print" class="btn btn-sm" formtarget="_blank">列印出貨單</button>
+    <button name="action" value="confirm_payment" class="btn btn-sm">確認收款</button>
+    <button name="action" value="ship" class="btn btn-sm">標記已出貨</button>
+    <button name="action" value="complete" class="btn btn-sm">標記已完成</button>
+  </div>
+  <% if (!orders.length) { %><p class="empty">沒有符合條件的訂單</p><% } else { %>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th class="chk"><input type="checkbox" data-check-all aria-label="全選"></th><th>訂單</th><th>日期</th><th>顧客</th><th>配送</th><th>付款</th><th>狀態</th><th class="r">件數</th><th class="r">金額</th></tr></thead>
+    <tbody>
+      <% orders.forEach(o => { %>
+        <tr class="row-link" data-href="/admin/orders/<%= o.id %>">
+          <td class="chk"><input type="checkbox" name="ids" value="<%= o.id %>" aria-label="選取 <%= o.name %>"></td>
+          <td><a href="/admin/orders/<%= o.id %>"><b><%= o.name %></b></a></td>
+          <td class="nowrap muted"><%= o.created_at.slice(5, 16) %></td>
+          <td><%= o.customer_name %><div class="faint small"><%= o.phone %></div></td>
+          <td class="small"><%= SHIPPING[o.shipping_method] %><% if (o.tracking_number) { %><div class="faint"><%= o.tracking_number %></div><% } %></td>
+          <td class="small"><span class="st st-<%= o.payment_status %>"><%= PAYMENT_STATUS[o.payment_status] %></span><div class="faint"><%= (PAYMENTS[o.payment_method] || '').split('（')[0].split('／')[0] %></div></td>
+          <td><%- include('_status', { s: o.status }) %></td>
+          <td class="r num"><%= o.item_count %></td>
+          <td class="r nowrap num"><%= money(o.total) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table></div><% } %>
+</form>
+<%- include('_pager') %>
+<%- include('_bottom') %>

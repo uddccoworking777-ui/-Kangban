@@ -1,0 +1,94 @@
+<%# 首頁內建區塊（以 sid 指定），內容用 E（網站內容）編輯 %>
+<% const topCats = categories.filter(c => !c.parentId); %>
+
+<% if (sid === 'promos') { %>
+<section class="container home-promos">
+  <div class="hero-side">
+    <a href="<%- E.href('home.promo1.link', '/shopping-guide#ship') %>" class="promo promo-green"<%- E.editing ? ' data-edit-link="home.promo1.link" data-link-textless' : '' %>>
+      <%- E.text('home.promo1.tag', '全館', 'span', 'promo-k') %>
+      <%- E.text('home.promo1.title', '滿 NT${{free_shipping_threshold}} 免運', 'b') %>
+      <%- E.text('home.promo1.text', '宅配、超商取貨都適用', 'span') %>
+    </a>
+    <a href="<%- E.href('home.promo2.link', '/about-us#values') %>" class="promo promo-img" style="background-image:url('<%= E.src('home.promo2.image', '/img/02_quality-assurance.webp') %>')"<%- E.bgAttr('home.promo2.image') %><%- E.editing ? ' data-edit-link="home.promo2.link" data-link-textless' : '' %>>
+      <%- E.text('home.promo2.tag', '安心保證', 'span', 'promo-k') %>
+      <%- E.text('home.promo2.title', '醫療器材皆具\n衛福部許可證', 'b') %>
+      <%- E.text('home.promo2.text', '商品頁可查詢字號 ›', 'span') %>
+    </a>
+  </div>
+</section>
+
+<% } else if (sid === 'cats') { %>
+<section class="section-tight container">
+  <div class="cat-tiles">
+    <% topCats.forEach(c => { %>
+      <a href="<%= catUrl(c) %>" class="cat-tile">
+        <img src="<%= c.icon %>" alt="<%= c.name %>" width="64" height="64" loading="lazy">
+        <b><%= c.name %></b>
+        <% if (c.description) { %><small><%= c.description %></small><% } %>
+      </a>
+    <% }) %>
+  </div>
+  <% if (E.editing) { %><p class="cms-hint">分類名稱、圖示和說明在後台「商品 → 分類」修改。</p><% } %>
+</section>
+
+<% } else if (sid === 'popular') { %>
+<section class="section container">
+  <div class="sec-head">
+    <div><%- E.text('home.popular.title', '最受歡迎的健康好物', 'h2') %><%- E.text('home.popular.text', '從日常保健到居家照護，這些是最多人選擇的好幫手。', 'p') %></div>
+    <%- E.link('home.popular.more', '立即挑選 ›', '/shop?sort=featured', 'more') %>
+  </div>
+  <% if (!popular.length) { %><p class="muted">目前沒有商品</p><% } else { %>
+  <div class="rail" data-rail>
+    <button class="rail-btn prev" data-rail-prev aria-label="上一組" hidden>‹</button>
+    <div class="rail-track" data-rail-track>
+      <% popular.forEach((p, i) => { %><%- include('product-card', { p, rank: i + 1 }) %><% }) %>
+    </div>
+    <button class="rail-btn next" data-rail-next aria-label="下一組">›</button>
+  </div>
+  <p class="rail-note">依實際銷量排序</p>
+  <% } %>
+</section>
+
+<% } else if (sid === 'explore') { const newestCats = topCats.filter(c => newest.some(p => p.categoryIds.includes(c.id))); %>
+<section class="section section-soft">
+  <div class="container">
+    <div class="sec-head">
+      <div><%- E.text('home.explore.title', '探索健康生活好物', 'h2') %><%- E.text('home.explore.text', '精選多元健康照護與生活用品，為日常生活找到更舒適、安心的選擇。', 'p') %></div>
+      <%- E.link('home.explore.more', '查看全部 ›', '/shop', 'more') %>
+    </div>
+    <% if (newestCats.length > 1) { %>
+      <div class="chip-tabs" role="tablist" data-filter-tabs>
+        <button role="tab" aria-selected="true" data-filter="">全部</button>
+        <% newestCats.forEach(c => { %><button role="tab" aria-selected="false" data-filter="<%= c.id %>"><%= c.name %></button><% }) %>
+      </div>
+    <% } %>
+    <div class="rail" data-rail>
+      <button class="rail-btn prev" data-rail-prev aria-label="上一組" hidden>‹</button>
+      <div class="rail-track" data-rail-track>
+        <% newest.forEach(p => { %><div class="rail-item" data-cats=",<%= p.categoryIds.join(',') %>,"><%- include('product-card', { p }) %></div><% }) %>
+      </div>
+      <button class="rail-btn next" data-rail-next aria-label="下一組">›</button>
+    </div>
+  </div>
+</section>
+
+<% } else if (sid === 'values') { %>
+<section class="section container">
+  <div class="sec-head center-head"><div><%- E.text('home.values.title', '以專業 守護健康生活', 'h2') %><%- E.text('home.values.text', '嚴選優質健康用品，讓安心照護融入每一天。', 'p') %></div></div>
+  <div class="values">
+    <% [['01','專業選品','精選實用健康用品，滿足多元生活需求。','01_professional-selection'],['02','品質安心','重視產品品質，提供安心可靠的選擇。','02_quality-assurance'],['03','貼心照護','貼近生活需求，提供貼心照護。','03_caring-support'],['04','多元選擇','整合多樣健康商品，打造便利購物體驗。','04_diverse-choices']].forEach(([n,t,d,img], i) => { %>
+      <div class="value"><img src="<%= E.src(`home.values.${i}.image`, `/img/${img}.webp`) %>" alt="<%= t %>" loading="lazy" width="320" height="240"<%- E.imgAttr(`home.values.${i}.image`) %>><div><span class="value-n"><%= n %></span><%- E.text(`home.values.${i}.title`, t, 'h3') %><%- E.text(`home.values.${i}.text`, d, 'p') %></div></div>
+    <% }) %>
+  </div>
+</section>
+
+<% } else if (sid === 'brands') { %>
+  <% if (brands.length) { %>
+  <section class="section-tight container">
+    <div class="sec-head center-head"><div><%- E.text('home.brands.title', '精選合作品牌', 'h2') %><%- E.text('home.brands.text', '嚴選值得信賴的醫療器材與健康用品品牌，品質有保障，用得更安心。', 'p') %></div></div>
+    <div class="brand-row">
+      <% brands.forEach(b => { %><a href="/shop?brand=<%= b.id %>" class="brand-logo" title="<%= b.name %>"><% if (b.logo) { %><img src="<%= b.logo %>" alt="<%= b.name %>" loading="lazy"><% } else { %><span><%= b.name %></span><% } %></a><% }) %>
+    </div>
+  </section>
+  <% } else if (E.editing) { %><div class="container"><p class="cms-hint">目前沒有品牌，在後台「商品 → 品牌」新增後會顯示在這裡。</p></div><% } %>
+<% } %>

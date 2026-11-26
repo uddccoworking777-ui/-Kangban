@@ -1,0 +1,24 @@
+<%- include('_top', { crumb: ['/admin/customers', '顧客'] }) %>
+<div class="cols cols-wide">
+  <div class="card flush">
+    <div class="card-head pad"><h2>訂單紀錄</h2><span class="muted small"><%= orders.length %> 筆 · 累計 <%= money(orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0)) %></span></div>
+    <% if (!orders.length) { %><p class="empty">尚無訂單</p><% } else { %>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>訂單</th><th>日期</th><th>狀態</th><th class="r">金額</th></tr></thead>
+      <tbody><% orders.forEach(o => { %><tr><td><a href="/admin/orders/<%= o.id %>"><%= o.name %></a></td><td><%= o.created_at.slice(0, 16) %></td><td><%- include('_status', { s: o.status }) %></td><td class="r"><%= money(o.total) %></td></tr><% }) %></tbody>
+    </table></div><% } %>
+  </div>
+  <form class="card" method="post">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>客戶資料</h2>
+    <p class="muted small"><%= c.email %> · <%= c.password ? '會員' : '訪客（未註冊）' %> · 建立於 <%= c.created_at.slice(0, 10) %></p>
+    <label>姓名<input name="name" value="<%= c.name %>" required></label>
+    <label>電話<input name="phone" value="<%= c.phone || '' %>"></label>
+    <div class="grid2"><label>郵遞區號<input name="zip" value="<%= c.zip || '' %>"></label><label>縣市<input name="city" value="<%= c.city || '' %>"></label></div>
+    <label>地址<input name="street" value="<%= c.street || '' %>"></label>
+    <label>內部備註<textarea name="note" rows="3"><%= c.note || '' %></textarea></label>
+    <% if (c.password) { %><label>重設密碼（選填，至少 8 字元）<input type="password" name="new_password" autocomplete="new-password"></label><% } %>
+    <button class="btn btn-primary btn-block">儲存</button>
+  </form>
+</div>
+<%- include('_bottom') %>

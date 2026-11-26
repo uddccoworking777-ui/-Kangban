@@ -1,0 +1,36 @@
+<%- include('_top') %>
+<div class="cols cols-wide">
+  <div class="card flush">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th></th><th>分類名稱</th><th>上層</th><th class="r">排序</th><th class="r">商品數</th><th>狀態</th><th></th></tr></thead>
+      <tbody>
+        <% rows.forEach(c => { %><tr>
+          <td class="thumb"><% if (c.icon) { %><img src="<%= c.icon %>" alt=""><% } %></td>
+          <td><strong><%= c.name %></strong></td>
+          <td class="muted"><%= (rows.find(x => x.id === c.parent_id) || {}).name || '' %></td>
+          <td class="r"><%= c.sequence %></td>
+          <td class="r"><a href="/admin/products?category=<%= c.id %>"><%= c.count %></a></td>
+          <td><span class="st <%= c.published ? 'st-on' : 'st-off' %>"><%= c.published ? '顯示' : '隱藏' %></span></td>
+          <td class="nowrap r"><a href="?edit=<%= c.id %>" class="btn btn-sm btn-ghost">編輯</a>
+            <form method="post" action="/admin/categories/<%= c.id %>/delete" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost danger" data-confirm="刪除分類「<%= c.name %>」？商品不會被刪除。">刪除</button></form></td>
+        </tr><% }) %>
+      </tbody>
+    </table></div>
+  </div>
+  <form class="card" method="post" enctype="multipart/form-data" action="/admin/categories?_csrf=<%= csrf %>">
+    <h2><%= edit ? '編輯分類' : '新增分類' %></h2>
+    <% const e = edit || { published: 1, sequence: rows.length + 1 }; %>
+    <% if (edit) { %><input type="hidden" name="id" value="<%= e.id %>"><% } %>
+    <label>名稱 *<input name="name" value="<%= e.name || '' %>" required></label>
+    <label>上層分類<select name="parent_id"><option value="">（無，最上層）</option><% rows.filter(r => !edit || r.id !== edit.id).forEach(r => { %><option value="<%= r.id %>" <%= e.parent_id === r.id ? 'selected' : '' %>><%= r.name %></option><% }) %></select></label>
+    <label>排序<input type="number" name="sequence" value="<%= e.sequence %>"></label>
+    <label>說明（選填）<span class="hint">顯示在首頁分類卡片，一句話即可</span><input name="description" value="<%= e.description || '' %>"></label>
+    <label>分類介紹段落（AI 搜尋優化）<span class="hint">顯示在分類頁上方，也是 AI 搜尋最常引用的內容。留空可在「AI 搜尋優化」自動產生</span><textarea name="seo_intro" rows="4"><%= e.seo_intro || '' %></textarea></label>
+    <% if (e.icon) { %><img src="<%= e.icon %>" alt="" class="preview"><input type="hidden" name="icon" value="<%= e.icon %>"><% } %>
+    <label>圖示（建議正方形）<input type="file" name="icon_file" accept="image/*"></label>
+    <label class="inline check-line"><input type="checkbox" name="published" value="1" <%= e.published ? 'checked' : '' %>> 在網站上顯示</label>
+    <button class="btn btn-primary btn-block">儲存</button>
+    <% if (edit) { %><a href="/admin/categories" class="btn btn-ghost btn-block">取消</a><% } %>
+  </form>
+</div>
+<%- include('_bottom') %>

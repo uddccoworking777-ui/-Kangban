@@ -1,0 +1,126 @@
+<%- include('_top', { actions: `<div class="seg">${[7, 30, 90].map(r => `<a href="?tab=track&range=${r}" class="${r === t.days ? 'on' : ''}">近 ${r} 天</a>`).join('')}</div>` }) %>
+<%- include('_geo-tabs') %>
+
+<% if (!t.hasAnyData) { %>
+  <div class="flash" style="margin-bottom:16px">目前還沒有資料。網站部署到正式網址、被 AI 和搜尋引擎發現後，這裡就會開始累積數據（通常需要幾天到幾週）。</div>
+<% } %>
+
+<div class="todo">
+  <div class="todo-cell"><span>AI 爬蟲讀取次數</span><b class="<%= t.aiBotTotal ? '' : 'zero' %>"><%= t.aiBotTotal %></b><small>AI 來讀你的網站</small></div>
+  <div class="todo-cell"><span>從 AI 點進來的訪客</span><b class="<%= t.aiRefTotal ? '' : 'zero' %>"><%= t.aiRefTotal %></b><small>AI 回答中有你的連結</small></div>
+  <div class="todo-cell"><span>AI 帶來的訂單</span><b class="<%= t.aiOrderCount ? '' : 'zero' %>"><%= t.aiOrderCount %></b><small><%= money(t.aiOrderAmount) %></small></div>
+  <div class="todo-cell"><span>從搜尋引擎點進來（對照）</span><b class="<%= t.searchRefTotal ? '' : 'zero' %>"><%= t.searchRefTotal %></b><small>Google、Bing 等</small></div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2>從 AI 點進來的訪客（每日）</h2><span class="muted small">近 <%= t.days %> 天</span></div>
+  <% const series = t.aiRefDaily, W = 900, H = 170, padL = 40, padB = 24, padT = 8;
+     const max = Math.max(0, ...series.map(d => d.n)); const top = max > 0 ? Math.max(4, Math.ceil(max / 4) * 4) : 4;
+     const bw = (W - padL) / series.length; const y = v => padT + (H - padT - padB) * (1 - v / top);
+     const every = series.length > 40 ? 15 : series.length > 10 ? 5 : 1; %>
+  <div class="chart" data-chart>
+    <svg viewBox="0 0 <%= W %> <%= H %>" role="img" aria-label="每日從 AI 點進來的訪客數">
+      <% [0, .5, 1].forEach(f => { const v = top * f; %><line x1="<%= padL %>" x2="<%= W %>" y1="<%= y(v) %>" y2="<%= y(v) %>" class="grid"/><text x="<%= padL - 8 %>" y="<%= y(v) + 4 %>" text-anchor="end" class="axis"><%= v %></text><% }) %>
+      <% series.forEach((d, i) => { const x = padL + i * bw + 1, w = Math.max(1.5, bw - 2), h = H - padB - y(d.n), r = Math.min(4, w / 2, h); %>
+        <g class="bar-g" data-tip="<%= d.d %>｜<%= d.n %> 位">
+          <rect x="<%= padL + i * bw %>" y="<%= padT %>" width="<%= bw %>" height="<%= H - padT - padB %>" class="hit"/>
+          <% if (d.n > 0) { %><path class="bar" d="M<%= x %>,<%= H - padB %>V<%= y(d.n) + r %>q0,-<%= r %> <%= r %>,-<%= r %>h<%= w - 2 * r %>q<%= r %>,0 <%= r %>,<%= r %>V<%= H - padB %>z"/><% } %>
+        </g>
+        <% if ((series.length - 1 - i) % every === 0) { %><text x="<%= padL + i * bw + bw / 2 %>" y="<%= H - 6 %>" text-anchor="middle" class="axis"><%= d.d.slice(5).replace('-', '/') %></text><% } %>
+      <% }) %>
+      <line x1="<%= padL %>" x2="<%= W %>" y1="<%= H - padB %>" y2="<%= H - padB %>" class="baseline"/>
+    </svg>
+    <div class="tip" hidden></div>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card flush">
+    <div class="card-head"><h2>AI 爬蟲</h2><span class="muted small">誰來讀了你的網站</span></div>
+    <% if (!t.aiBots.length) { %><p class="empty">期間內沒有 AI 爬蟲造訪</p><% } else { %>
+    <div class="table-wrap"><table class="table"><thead><tr><th>來源</th><th class="r">次數</th><th>最近一次</th></tr></thead>
+      <tbody><% t.aiBots.forEach(r => { %><tr><td><%= r.source %></td><td class="r num"><%= r.hits %></td><td class="muted small"><%= r.last %></td></tr><% }) %></tbody></table></div><% } %>
+    <p class="hint pad" style="margin:0">「模型訓練」用來訓練 AI；「搜尋」和「使用者點選」代表 AI 正在回答問題時來讀你的網頁，與被引用最相關。</p>
+  </div>
+  <div class="card flush">
+    <div class="card-head"><h2>從 AI 點進來</h2><span class="muted small">訪客與訂單</span></div>
+    <% if (!t.aiRefs.length && !t.aiOrders.length) { %><p class="empty">期間內沒有從 AI 點進來的訪客</p><% } else { %>
+    <div class="table-wrap"><table class="table"><thead><tr><th>AI</th><th class="r">訪客</th><th class="r">訂單</th><th class="r">營收</th></tr></thead>
+      <tbody><% const srcs = [...new Set([...t.aiRefs.map(r => r.source), ...t.aiOrders.map(r => r.source)])];
+        srcs.forEach(src => { const r = t.aiRefs.find(x => x.source === src) || { hits: 0 }; const o = t.aiOrders.find(x => x.source === src) || { n: 0, amount: 0 }; %>
+        <tr><td><%= src %></td><td class="r num"><%= r.hits %></td><td class="r num"><%= o.n %></td><td class="r num"><%= money(o.amount) %></td></tr>
+      <% }) %></tbody></table></div><% } %>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card flush">
+    <div class="card-head"><h2>AI 最常讀的頁面</h2></div>
+    <% if (!t.aiBotPaths.length) { %><p class="empty">尚無資料</p><% } else { %>
+    <div class="table-wrap"><table class="table"><tbody><% t.aiBotPaths.forEach(r => { %><tr><td class="small"><a href="<%= r.path %>" target="_blank" rel="noopener"><%= r.path %></a></td><td class="r num"><%= r.hits %></td></tr><% }) %></tbody></table></div><% } %>
+  </div>
+  <div class="card flush">
+    <div class="card-head"><h2>AI 訪客進入的頁面</h2></div>
+    <% if (!t.aiRefPaths.length) { %><p class="empty">尚無資料</p><% } else { %>
+    <div class="table-wrap"><table class="table"><tbody><% t.aiRefPaths.forEach(r => { %><tr><td class="small"><a href="<%= r.path %>" target="_blank" rel="noopener"><%= r.path %></a></td><td class="r num"><%= r.hits %></td></tr><% }) %></tbody></table></div><% } %>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card">
+    <h2>特殊檔案有沒有被讀取</h2>
+    <ul class="list">
+      <% [['/robots.txt', '讀取規則'], ['/sitemap.xml', '網站地圖'], ['/llms.txt', 'AI 網站摘要'], ['/llms-full.txt', 'AI 網站摘要（完整版）']].forEach(([f, label]) => { const r = t.files[f]; %>
+        <li><span><code><%= f %></code> <span class="muted small"><%= label %></span></span><span class="small"><% if (r) { %><span class="st st-completed"><%= r.hits %> 次・<%= r.sources %></span><% } else { %><span class="faint">期間內沒有被讀取</span><% } %></span></li>
+      <% }) %>
+    </ul>
+    <p class="hint" style="margin-top:8px">可以用來驗證 llms.txt 是否真的有 AI 在讀。</p>
+  </div>
+  <div class="card">
+    <h2>最近紀錄</h2>
+    <% if (!t.recent.length) { %><p class="muted small">尚無資料</p><% } else { %>
+    <ul class="list small"><% t.recent.forEach(r => { %><li><span><span class="lbl <%= r.kind === 'ai_ref' ? 'lbl-ok' : '' %>"><%= r.kind === 'ai_ref' ? '訪客' : '爬蟲' %></span> <%= r.source %> → <%= r.path %></span><span class="faint nowrap"><%= r.at.slice(5, 16) %></span></li><% }) %></ul><% } %>
+  </div>
+</div>
+
+<div class="card" id="checks">
+  <div class="card-head"><h2>手動檢查紀錄</h2><span class="muted small">定期問 AI 同樣的問題，記下你的網站有沒有出現</span></div>
+  <% const qs = ['台灣哪裡可以買護膝？推薦哪些品牌？', '久坐腰痠可以用什麼護腰？', '有什麼助眠的好物推薦？', settings.store_name + ' 這家健康用品店評價如何？']; %>
+  <p class="small muted" style="margin-top:-4px">建議問題（點一下用 Perplexity 或 ChatGPT 開啟）：</p>
+  <ul class="small" style="margin:0 0 12px;padding-left:1.2em">
+    <% qs.forEach(q => { %><li><%= q %>　<a href="https://www.perplexity.ai/search?q=<%= encodeURIComponent(q) %>" target="_blank" rel="noopener">Perplexity</a>・<a href="https://chatgpt.com/?q=<%= encodeURIComponent(q) %>" target="_blank" rel="noopener">ChatGPT</a></li><% }) %>
+  </ul>
+  <form method="post" action="/admin/geo/checks" class="check-form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <input type="date" name="day" value="<%= today %>" aria-label="日期">
+    <select name="tool" aria-label="AI 工具"><% tools.forEach(x => { %><option><%= x %></option><% }) %></select>
+    <input name="question" placeholder="問了什麼問題" required>
+    <select name="result" aria-label="結果"><% Object.entries(results).forEach(([k, v]) => { %><option value="<%= k %>"><%= v %></option><% }) %></select>
+    <input name="note" placeholder="備註（選填，例如排第幾、提到哪個商品）">
+    <button class="btn btn-primary">記錄</button>
+  </form>
+  <% if (checks.length) { %>
+  <div class="table-wrap" style="margin-top:12px"><table class="table">
+    <thead><tr><th>日期</th><th>AI</th><th>問題</th><th>結果</th><th>備註</th><th></th></tr></thead>
+    <tbody><% checks.forEach(c => { %><tr>
+      <td class="nowrap small"><%= c.day %></td><td class="small"><%= c.tool %></td><td class="small"><%= c.question %></td>
+      <td><span class="st <%= c.result === 'cited' ? 'st-completed' : c.result === 'mentioned' ? 'st-pending' : 'st-off' %>"><%= results[c.result] %></span></td>
+      <td class="small muted"><%= c.note %></td>
+      <td class="r"><form method="post" action="/admin/geo/checks/<%= c.id %>/delete" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost danger" data-confirm="刪除這筆紀錄？">刪除</button></form></td>
+    </tr><% }) %></tbody>
+  </table></div>
+  <% const cited = checks.filter(c => c.result === 'cited').length; %>
+  <p class="small muted" style="margin:8px 0 0">共 <%= checks.length %> 次檢查，其中 <%= cited %> 次有引用或推薦本站（<%= Math.round(cited / checks.length * 100) %>%）。</p>
+  <% } %>
+</div>
+
+<div class="card">
+  <h2>數據的限制</h2>
+  <ul class="small muted" style="margin:0;padding-left:1.2em">
+    <li>從 AI App（例如手機版 ChatGPT）點進來時，有時不會帶上來源資訊，會被算成「直接造訪」，所以實際人數可能比這裡多。</li>
+    <li>Google 搜尋上方的「AI 摘要」點進來時，無法和一般 Google 搜尋區分，會算在「搜尋引擎」裡。</li>
+    <li>爬蟲是依名稱辨識，少數不良程式會冒用名稱。</li>
+    <li>只記錄日期、來源和頁面，不記錄 IP 或任何個人資料；資料保留 400 天。</li>
+  </ul>
+</div>
+<%- include('_bottom') %>

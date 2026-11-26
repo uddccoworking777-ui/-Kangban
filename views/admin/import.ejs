@@ -1,0 +1,79 @@
+<%- include('_top', { title: '匯入／匯出' }) %>
+<% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+<% if (result) { %>
+  <div class="card ok-card">
+    <h2>匯入完成</h2>
+    <p>新增 <b><%= result.created %></b> 項、更新 <b><%= result.updated %></b> 項<% if (result.skipped) { %>、略過 <b><%= result.skipped %></b> 項（資料有誤）<% } %><% if (result.unpublished) { %>、下架 <b><%= result.unpublished %></b> 項<% } %>。</p>
+    <% if (result.newCats.length) { %><p class="small">自動建立分類：<%= result.newCats.join('、') %>（記得到<a href="/admin/categories">分類</a>上傳圖示）</p><% } %>
+    <% if (result.newBrands.length) { %><p class="small">自動建立品牌：<%= result.newBrands.join('、') %></p><% } %>
+    <a href="/admin/products" class="btn btn-primary">查看商品</a>
+  </div>
+<% } %>
+
+<% if (plan) { const c = a => plan.filter(p => p.action === a).length; %>
+  <div class="card">
+    <div class="card-head"><h2>預覽：<%= source %></h2><span class="small">新增 <b><%= c('create') %></b> · 更新 <b><%= c('update') %></b> · <span class="neg">錯誤 <b><%= c('error') %></b></span></span></div>
+    <p class="muted small">確認無誤後按下方「確認匯入」。有錯誤的列會略過，其他列照常匯入。以「貨號」比對既有商品（沒有貨號時用名稱比對）；試算表中留空的欄位不會覆蓋原本的資料。</p>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>列</th><th>動作</th><th>貨號</th><th>名稱</th><th class="r">價格</th><th class="r">庫存</th><th>分類</th><th>品牌</th><th>圖片</th><th>上架</th></tr></thead>
+      <tbody><% plan.forEach(p => { %>
+        <tr class="<%= p.action === 'error' ? 'row-err' : '' %>">
+          <td><%= p.row %></td>
+          <td><% if (p.action === 'error') { %><span class="tag tag-cancelled" title="<%= p.errors.join('、') %>">錯誤：<%= p.errors.join('、') %></span><% } else { %><span class="tag <%= p.action === 'create' ? 'tag-paid' : 'tag-pending' %>"><%= p.action === 'create' ? '新增' : '更新' %></span><% } %></td>
+          <td class="muted"><%= p.sku || '' %></td><td><%= p.name %></td>
+          <td class="r"><%= Number.isFinite(p.price) ? money(p.price) : '' %></td><td class="r"><%= p.stock ?? '' %></td>
+          <td class="small"><%= (p.categories || []).join('、') %></td><td class="small"><%= p.brand || '' %></td>
+          <td><% if (p.images && p.images[0]) { %><img src="<%= p.images[0] %>" alt="" class="mini"> <span class="muted small"><%= p.images.length %></span><% } %></td>
+          <td><%= p.published ? '是' : '否' %></td>
+        </tr><% }) %>
+      </tbody>
+    </table></div>
+    <form method="post" action="/admin/import/confirm" class="confirm-row">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="token" value="<%= token %>">
+      <label class="inline"><input type="checkbox" name="unpublish_missing" value="1"> 同步模式：試算表裡沒有的商品自動下架</label>
+      <a href="/admin/import" class="btn btn-ghost">取消</a>
+      <button class="btn btn-primary" <%= plan.every(p => p.action === 'error') ? 'disabled' : '' %>>確認匯入</button>
+    </form>
+  </div>
+<% } %>
+
+<% if (!plan) { %>
+<div class="cols">
+  <form class="card" method="post" action="/admin/import/google">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>從 Google 試算表匯入</h2>
+    <% if (!googleReady) { %>
+      <div class="flash flash-error">尚未設定 Google API。<% if (admin.role === 'owner') { %><a href="/admin/settings#google">前往設定 →</a><% } else { %>請擁有者到「設定」填寫。<% } %></div>
+    <% } else if (serviceEmail) { %>
+      <p class="small">請先把試算表「共用」給：<code class="copy" title="點一下複製"><%= serviceEmail %></code>（檢視者即可）</p>
+    <% } else { %>
+      <p class="small muted">使用 API 金鑰：試算表需設為「知道連結的任何人都可以檢視」。</p>
+    <% } %>
+    <label>試算表網址<input name="sheet_url" value="<%= settings.google_sheet_url %>" placeholder="https://docs.google.com/spreadsheets/d/..." required></label>
+    <label>範圍（選填；留空 = 網址中的分頁或第一個分頁）<input name="range" value="<%= settings.google_sheet_range %>" placeholder="例：商品!A1:M"></label>
+    <button class="btn btn-primary" <%= googleReady ? '' : 'disabled' %>>讀取並預覽</button>
+  </form>
+  <div>
+    <form class="card" method="post" action="/admin/import/csv?_csrf=<%= csrf %>" enctype="multipart/form-data">
+      <h2>或上傳 CSV 檔</h2>
+      <p class="muted small">Excel / Google 試算表都可以「下載為 CSV」。</p>
+      <input type="file" name="file" accept=".csv,text/csv" required>
+      <button class="btn">上傳並預覽</button>
+    </form>
+    <div class="card">
+      <h2>欄位格式</h2>
+      <p class="small">第一列為標題列，欄位順序不拘，只有「名稱」和「價格」是必填：</p>
+      <p class="chips"><% header.forEach(h => { %><span><%= h %></span><% }) %></p>
+      <ul class="small muted">
+        <li>分類可以填多個，用「、」或逗號分開；不存在的分類和品牌會自動建立</li>
+        <li>圖片網址可填多個（換行或逗號分開），支援 Google 雲端硬碟分享連結</li>
+        <li>上架、熱門：填「是 / 否」</li>
+        <li>庫存留空 = 不改變原本庫存</li>
+      </ul>
+      <a href="/admin/import/template.csv" class="btn btn-sm btn-ghost">下載範本 CSV</a>
+      <a href="/admin/products.csv" class="btn btn-sm btn-ghost">下載目前所有商品</a>
+    </div>
+  </div>
+</div>
+<% } %>
+<%- include('_bottom') %>

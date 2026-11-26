@@ -1,0 +1,147 @@
+{
+  "categories": [
+    {
+      "id": 9,
+      "name": "身體護具與支撐",
+      "sequence": 1,
+      "icon": "/img/01_body-support.webp"
+    },
+    {
+      "id": 10,
+      "name": "睡眠與放鬆",
+      "sequence": 2,
+      "icon": "/img/02_sleep-relax.webp"
+    },
+    {
+      "id": 11,
+      "name": "健康監測與量測",
+      "sequence": 3,
+      "icon": "/img/03_health-monitor.webp"
+    },
+    {
+      "id": 18,
+      "name": "按摩與舒緩用品",
+      "sequence": 4,
+      "icon": "/img/04_massage.webp"
+    },
+    {
+      "id": 19,
+      "name": "居家照護用品",
+      "sequence": 5,
+      "icon": "/img/05_home-care.webp"
+    },
+    {
+      "id": 20,
+      "name": "足部與行動照護",
+      "sequence": 6,
+      "icon": "/img/06_foot-mobility.webp"
+    },
+    {
+      "id": 21,
+      "name": "個人照護用品",
+      "sequence": 7,
+      "icon": "/img/07_personal-care.webp"
+    }
+  ],
+  "brands": [
+    {
+      "id": 1,
+      "name": "愛放鬆 fun song",
+      "logo": "/img/funsong_logo_gray_800x400.webp"
+    }
+  ],
+  "products": [
+    {
+      "id": 7,
+      "variantId": 7,
+      "name": "睡眠OK繃助眠貼片禮盒",
+      "price": 1200,
+      "sequence": 1,
+      "createDate": "2026-05-01",
+      "categoryIds": [
+        10
+      ],
+      "brandIds": [
+        1
+      ],
+      "popular": true,
+      "image": "/img/prod_7.jpg",
+      "description": "30片/盒 愛放鬆 fun song 推出的睡前儀式助眠禮盒，內含30片雲朵造型睡眠OK繃貼片，採用天然素材製成，貼於助眠穴位即可使用。搭配三步驟睡前儀式：放下手機、關燈躺平感受身體被承接、閉眼深呼吸，幫助身體放鬆、喚回好眠。精緻紫色磁吸禮盒設計，適合自用或送禮。",
+      "spec": "內容量：30 片／盒\n材質：天然素材貼片\n包裝：磁吸禮盒"
+    },
+    {
+      "id": 8,
+      "variantId": 8,
+      "name": "量子訊息多那之護膝",
+      "price": 2800,
+      "sequence": 2,
+      "createDate": "2026-05-02",
+      "categoryIds": [
+        9
+      ],
+      "brandIds": [
+        1
+      ],
+      "popular": true,
+      "image": "/img/prod_8.jpg",
+      "description": "採用量子訊息技術，精準對頻1.8–8.2Hz，有效強化膝關節周圍肌肉支撐力。開孔設計減輕髕骨壓力，兩側彈性固定片提升穩定性，台灣製造品質保證。適合運動訓練、日常行走或膝蓋復健使用，無輻射設計讓您安心穿戴。",
+      "spec": "材質：彈性布料、量子訊息材質\n設計：髕骨開孔、兩側彈性固定片",
+      "sizeChart": "<table><thead><tr><th>尺寸</th><th>膝上 10 公分周長</th></tr></thead><tbody><tr><td>S</td><td>30–35 cm</td></tr><tr><td>M</td><td>35–40 cm</td></tr><tr><td>L</td><td>40–45 cm</td></tr><tr><td>XL</td><td>45–50 cm</td></tr></tbody></table><p>※ 範例尺寸，請到後台依實際商品修改。</p>"
+    },
+    {
+      "id": 9,
+      "variantId": 9,
+      "name": "拉繩式量子訊息護腰",
+      "price": 3600,
+      "sequence": 3,
+      "createDate": "2026-05-03",
+      "categoryIds": [
+        9
+      ],
+      "brandIds": [
+        1
+      ],
+      "popular": true,
+      "image": "/img/prod_9.jpg",
+      "description": "獨特拉繩束緊設計，可依腰圍自由調整鬆緊，提供全方位腰部支撐。內嵌量子訊息材質，精準對頻1.8–8.2Hz，強化腰背肌肉群，減輕腰椎負擔。適合久坐辦公族、搬運重物或運動訓練時使用，無輻射安心穿戴。",
+      "spec": "材質：彈性布料、量子訊息材質\n設計：拉繩束緊",
+      "sizeChart": "<table><thead><tr><th>尺寸</th><th>腰圍</th></tr></thead><tbody><tr><td>M</td><td>70–85 cm</td></tr><tr><td>L</td><td>85–100 cm</td></tr><tr><td>XL</td><td>100–115 cm</td></tr></tbody></table><p>※ 範例尺寸，請到後台依實際商品修改。</p>"
+    },
+    {
+      "id": 10,
+      "variantId": 10,
+      "name": "量子訊息機能運動襪",
+      "price": 890,
+      "sequence": 4,
+      "createDate": "2026-05-04",
+      "categoryIds": [
+        20
+      ],
+      "brandIds": [
+        1
+      ],
+      "popular": false,
+      "image": "/img/prod_10.jpg",
+      "description": "融入量子訊息技術的機能運動襪，精準對頻1.8–8.2Hz，穿戴即可強化足部與小腿肌肉表現。彈性針織布料貼合腳型，提供適度壓力與透氣舒適感，適合日常穿著、健走或各類運動場合，無輻射設計健康安心。",
+      "spec": "材質：彈性針織布料"
+    },
+    {
+      "id": 11,
+      "variantId": 11,
+      "name": "量子訊息天使布繞指護腕",
+      "price": 850,
+      "sequence": 5,
+      "createDate": "2026-05-05",
+      "categoryIds": [
+        9
+      ],
+      "brandIds": [
+        1
+      ],
+      "popular": false,
+      "image": "/img/prod_11.jpg",
+      "description": "採用柔軟天使布材質，繞指設計穩固固定護腕位置，有效支撐腕關節並減少運動傷害風險。量子訊息技術精準對頻1.8–8.2Hz，強化手腕周圍肌肉，台灣製造品質可靠。適合健身、羽球、網球或長時間使用鍵盤的族群。",
+      "spec": "材質：天使布\n設計：繞指固定"
+    }
+  ]
+}

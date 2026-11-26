@@ -1,0 +1,13 @@
+<%- include('../partials/head') %>
+<div class="container page narrow">
+  <ol class="steps"><li class="done">購物車</li><li class="done">填寫資料</li><li class="on">完成訂購</li></ol>
+  <div class="center">
+    <div class="check-circle">✓</div>
+    <h1 class="h2">感謝您的訂購！</h1>
+    <p>訂單編號 <strong><%= order.name %></strong> 已成立。</p>
+  </div>
+  <%- include('../partials/order-detail') %>
+  <p class="muted small">付款完成後 <%= settings.ship_days %> 個工作天內出貨，出貨後會通知您物流單號。有任何問題，歡迎透過 <a href="/contactus">聯絡我們</a> 詢問，請附上訂單編號。</p>
+  <div class="center"><a href="/shop" class="btn btn-primary">繼續購物</a> <% if (user) { %><a href="/my" class="btn btn-outline">查看我的訂單</a><% } else { %><a href="/web/signup" class="btn btn-outline">用這個 Email 註冊會員，查詢訂單</a><% } %></div>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,69 @@
+<%- include('_top', { crumb: ['/admin/orders', '訂單'], title: '訂單 ' + o.name, actions: `<a class="btn" href="/admin/orders/print?ids=${o.id}" target="_blank">列印出貨單</a>` }) %>
+<% const flow = ['pending', 'paid', 'shipped', 'completed']; const idx = flow.indexOf(o.status); const cod = o.payment_method === 'cod'; %>
+<div class="cols cols-wide">
+  <div>
+    <% if (o.status !== 'cancelled' && o.status !== 'completed') { %>
+      <div class="next-step">
+        <% if (o.status === 'pending' && !cod && o.payment_status !== 'paid') { %>
+          <h2>下一步：確認收款</h2>
+          <p class="small muted">顧客選擇「<%= PAYMENTS[o.payment_method] %>」，應付 <b><%= money(o.total) %></b>。確認款項入帳後按下方按鈕。</p>
+          <form method="post" action="/admin/orders/<%= o.id %>/action"><input type="hidden" name="_csrf" value="<%= csrf %>"><button name="action" value="confirm_payment" class="btn btn-primary">確認已收款</button><button name="action" value="cancel" class="btn btn-ghost danger" data-confirm="確定取消這筆訂單？庫存會自動加回。">取消訂單</button></form>
+        <% } else if (o.status === 'paid' || (o.status === 'pending' && (cod || o.payment_status === 'paid'))) { %>
+          <h2>下一步：出貨</h2>
+          <p class="small muted"><%= SHIPPING[o.shipping_method] %><%= o.cvs_store ? '・' + o.cvs_store : '' %>。填寫物流單號後標記出貨，顧客可在「訂單查詢」看到單號。</p>
+          <form method="post" action="/admin/orders/<%= o.id %>/action"><input type="hidden" name="_csrf" value="<%= csrf %>"><input name="tracking_number" value="<%= o.tracking_number || '' %>" placeholder="物流單號" required><button name="action" value="ship" class="btn btn-primary">標記已出貨</button></form>
+        <% } else if (o.status === 'shipped') { %>
+          <h2>下一步：完成訂單</h2>
+          <p class="small muted">已於 <%= o.shipped_at || '—' %> 出貨（單號 <%= o.tracking_number || '—' %>）。顧客收到貨後可標記完成<%= cod ? '，貨到付款會同時記為已付款' : '' %>。</p>
+          <form method="post" action="/admin/orders/<%= o.id %>/action"><input type="hidden" name="_csrf" value="<%= csrf %>"><button name="action" value="complete" class="btn btn-primary">標記已完成</button></form>
+        <% } %>
+      </div>
+    <% } %>
+    <div class="card">
+      <div class="steps"><% flow.forEach((s, i) => { %><span class="<%= o.status !== 'cancelled' && i <= idx ? 'done' : '' %>"><%= ORDER_STATUS[s] %></span><% }) %></div>
+      <p class="small muted">下單 <%= o.created_at %><% if (o.paid_at) { %>・收款 <%= o.paid_at %><% } %><% if (o.shipped_at) { %>・出貨 <%= o.shipped_at %><% } %><% if (o.status === 'cancelled') { %>・<span class="danger">已取消</span><% } %></p>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>商品</th><th>貨號</th><th class="r">單價</th><th class="r">數量</th><th class="r">小計</th></tr></thead>
+        <tbody><% o.items.forEach(i => { %><tr><td><% if (i.product_id) { %><a href="/admin/products/<%= i.product_id %>"><%= i.name %></a><% } else { %><%= i.name %><% } %></td><td class="muted"><%= i.sku %></td><td class="r num"><%= money(i.price) %></td><td class="r num"><%= i.qty %></td><td class="r num"><%= money(i.subtotal) %></td></tr><% }) %></tbody>
+        <tfoot>
+          <tr><td colspan="4" class="r muted">小計</td><td class="r num"><%= money(o.subtotal) %></td></tr>
+          <tr><td colspan="4" class="r muted">運費</td><td class="r num"><%= o.shipping_fee ? money(o.shipping_fee) : '免運' %></td></tr>
+          <tr class="strong"><td colspan="4" class="r">總計</td><td class="r num"><%= money(o.total) %></td></tr>
+        </tfoot>
+      </table></div>
+      <% if (o.note) { %><div class="note-box"><b>顧客備註：</b><%= o.note %></div><% } %>
+    </div>
+    <div class="card">
+      <h2>處理紀錄</h2>
+      <% if (!history.length) { %><p class="muted small">尚無紀錄</p><% } else { %>
+      <ul class="timeline"><% history.forEach(h => { %><li><span class="faint small"><%= h.created_at %>・<%= h.admin_name %></span><div><%= h.detail.replace(o.name + ' ', '') %></div></li><% }) %></ul><% } %>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>顧客</h2>
+      <p><% if (o.customer_id) { %><a href="/admin/customers/<%= o.customer_id %>"><%= o.customer_name %></a><% } else { %><%= o.customer_name %><% } %><br><a href="mailto:<%= o.email %>"><%= o.email %></a><br><a href="tel:<%= o.phone %>"><%= o.phone %></a></p>
+      <dl class="kv">
+        <dt>配送</dt><dd><%= SHIPPING[o.shipping_method] %></dd>
+        <dt><%= o.cvs_store ? '門市' : '地址' %></dt><dd><%= o.cvs_store || `${o.zip} ${o.city}${o.street}` %></dd>
+        <dt>付款</dt><dd><%= PAYMENTS[o.payment_method] %><br><span class="st st-<%= o.payment_status %>"><%= PAYMENT_STATUS[o.payment_status] %></span></dd>
+        <dt>發票</dt><dd><%= INVOICES[o.invoice_type] %><% if (o.vat) { %><br>統編 <%= o.vat %> <%= o.company_name %><% } %><% if (o.invoice_detail) { %><br><%= o.invoice_detail %><% } %></dd>
+        <% if (o.tracking_number) { %><dt>物流單號</dt><dd><%= o.tracking_number %></dd><% } %>
+        <% if (o.source) { %><dt>來源</dt><dd><span class="lbl lbl-ok">從 <%= o.source %> 點進來</span></dd><% } %>
+      </dl>
+    </div>
+    <form class="card" method="post" action="/admin/orders/<%= o.id %>">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <h2>內部備註</h2>
+      <textarea name="admin_note" rows="3" placeholder="只有後台看得到"><%= o.admin_note || '' %></textarea>
+      <details class="more" style="margin-top:10px"><summary>手動修改狀態</summary>
+        <label>訂單狀態<select name="status"><% Object.entries(ORDER_STATUS).forEach(([k, v]) => { %><option value="<%= k %>" <%= o.status === k ? 'selected' : '' %>><%= v %></option><% }) %></select></label>
+        <label>付款狀態<select name="payment_status"><% Object.entries(PAYMENT_STATUS).forEach(([k, v]) => { %><option value="<%= k %>" <%= o.payment_status === k ? 'selected' : '' %>><%= v %></option><% }) %></select></label>
+        <label>物流單號<input name="tracking_number" value="<%= o.tracking_number || '' %>"></label>
+        <p class="hint">改為「已取消」時庫存會自動加回。</p>
+      </details>
+      <button class="btn btn-block">儲存</button>
+    </form>
+  </div>
+</div>
+<%- include('_bottom') %>

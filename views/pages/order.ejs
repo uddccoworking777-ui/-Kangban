@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<div class="container page narrow">
+  <nav class="crumbs"><% if (typeof guest !== 'undefined') { %><a href="/order-lookup">訂單查詢</a><% } else { %><a href="/my">我的帳戶</a><% } %> / <span><%= order.name %></span></nav>
+  <h1 class="h2">訂單 <%= order.name %></h1>
+  <p>日期：<%= order.created_at.slice(0, 16) %>　狀態：<span class="pill"><%= states[order.status] %></span></p>
+  <%- include('../partials/order-detail') %>
+</div>
+<%- include('../partials/foot') %>

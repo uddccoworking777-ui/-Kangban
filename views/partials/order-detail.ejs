@@ -1,0 +1,25 @@
+<div class="box">
+  <% order.items.forEach(i => { %><div class="row"><span><%= i.name %> × <%= i.qty %></span><span><%= money(i.subtotal) %></span></div><% }) %>
+  <div class="row"><span>小計</span><span><%= money(order.subtotal) %></span></div>
+  <div class="row"><span>運費</span><span><%= order.shipping_fee ? money(order.shipping_fee) : '免運' %></span></div>
+  <div class="row total"><span>總計</span><span><%= money(order.total) %></span></div>
+</div>
+<div class="box">
+  <h3>訂單資訊</h3>
+  <div class="kv">
+    <span>收件人</span><span><%= order.customer_name %>（<%= order.phone %>）</span>
+    <span>配送方式</span><span><%= ship[order.shipping_method]?.label || order.shipping_method %></span>
+    <% if (order.cvs_store) { %><span>取貨門市</span><span><%= order.cvs_store %></span><% } else { %><span>地址</span><span><%= order.zip %> <%= order.city %><%= order.street %></span><% } %>
+    <span>付款方式</span><span><%= payments[order.payment_method] || order.payment_method %></span>
+    <span>發票</span><span><%= invoices[order.invoice_type] || '' %> <%= order.vat %> <%= order.company_name %> <%= order.invoice_detail %></span>
+    <% if (order.tracking_number) { %><span>物流單號</span><span><%= order.tracking_number %></span><% } %>
+    <% if (order.note) { %><span>備註</span><span><%= order.note %></span><% } %>
+  </div>
+</div>
+<% if (order.payment_method === 'atm' && order.payment_status === 'unpaid' && order.status !== 'cancelled') { %>
+  <div class="box soft">
+    <h3>匯款資訊</h3>
+    <pre class="note"><%= settings.bank_info %></pre>
+    <p class="small">請於 <%= settings.payment_deadline_days %> 天內匯款 <strong><%= money(order.total) %></strong>，並透過 <a href="/contactus">聯絡我們</a> 告知訂單編號 <%= order.name %> 與帳號末五碼。逾期訂單將自動取消。</p>
+  </div>
+<% } %>

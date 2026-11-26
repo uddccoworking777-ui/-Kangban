@@ -1,0 +1,129 @@
+<%# 自訂頁面的區塊。編輯模式下會多出每個區塊的操作列與「新增區塊」按鈕 %>
+<% const ed = typeof editing !== 'undefined' && editing; %>
+<div class="cms-blocks" <% if (ed) { %>data-page-id="<%= page.id %>"<% } %>>
+<% if (ed) { %><button class="cms-add" data-block-add="0">＋ 新增區塊</button><% } %>
+<% page.blocks.forEach((b, i) => { const B = blockEditor(ed, page.id, i, b.data); const d = b.data; %>
+  <div class="cms-block cms-b-<%= b.type %>" <% if (ed) { %>data-block-index="<%= i %>"<% } %>>
+    <% if (ed) { %>
+      <div class="cms-bar" contenteditable="false">
+        <span class="cms-bar-name"><%= b.type === 'sys' ? (SYS_SECTIONS[d.id] || '內建區塊') : BLOCKS[b.type].label %></span>
+        <% if (b.type === 'banner') { %><button data-block-op="add-slide" title="新增一張主視覺圖片；超過一張會自動輪播">＋ 新增圖片</button><% } %>
+        <% if (b.type === 'imagetext') { %><button data-block-op="toggle" data-field="reverse" title="左右對調">⇄ 對調</button><% } %>
+        <% if (b.type === 'cards' || b.type === 'faq') { %><button data-block-op="add-item" title="新增一項">＋ 項目</button><% } %>
+        <% if (b.type === 'products') { %>
+          <select data-block-set="source" aria-label="商品來源">
+            <option value="popular" <%= d.source === 'popular' ? 'selected' : '' %>>熱銷排行</option>
+            <option value="newest" <%= d.source === 'newest' ? 'selected' : '' %>>最新商品</option>
+            <% categories.filter(c => !c.parentId).forEach(c => { %><option value="cat:<%= c.id %>" <%= d.source === 'cat:' + c.id ? 'selected' : '' %>>分類：<%= c.name %></option><% }) %>
+          </select>
+          <select data-block-set="count" aria-label="數量"><% [4, 5, 8, 10, 12].forEach(n => { %><option value="<%= n %>" <%= Number(d.count) === n ? 'selected' : '' %>><%= n %> 個</option><% }) %></select>
+        <% } %>
+        <button data-block-op="move" data-to="<%= i - 1 %>" <%= i === 0 ? 'disabled' : '' %> title="上移">↑</button>
+        <button data-block-op="move" data-to="<%= i + 1 %>" <%= i === page.blocks.length - 1 ? 'disabled' : '' %> title="下移">↓</button>
+        <% if (b.type !== 'sys') { %><button data-block-op="duplicate" title="複製">複製</button><% } %>
+        <button data-block-op="delete" class="danger" title="刪除這個區塊" <%- b.type === 'sys' ? 'data-sys="1"' : '' %>>刪除區塊</button>
+      </div>
+    <% } %>
+
+    <% if (b.type === 'pagehead') { %>
+      <section class="page-hero"><div class="container"><%- B.text('title', '頁面標題', 'h1') %><%- (d.text || ed) ? B.text('text', '', 'p') : '' %></div></section>
+
+    <% } else if (b.type === 'banner') {
+         const multi = Array.isArray(d.slides);
+         const slides = multi ? d.slides : [d];
+         const k0 = (k, f) => multi ? `slides.${k}.${f}` : f;
+         const isHome = page.slug === 'home'; %>
+      <section class="container cms-pad <%= isHome && i === 0 ? 'banner-top' : '' %>">
+        <div class="carousel <%= slides.length > 1 && !ed ? 'is-carousel' : '' %>" <%- slides.length > 1 && !ed ? 'data-carousel aria-roledescription="carousel" aria-label="主視覺輪播"' : '' %>>
+          <div class="carousel-track">
+          <% slides.forEach((sl, k) => { %>
+            <div class="slide <%= k === 0 ? 'on' : '' %>" <%- slides.length > 1 && !ed ? `aria-roledescription="slide" aria-label="第 ${k + 1} 張，共 ${slides.length} 張"` : '' %> <%- k > 0 && !ed ? 'aria-hidden="true"' : '' %>>
+              <% if (ed && slides.length > 1) { %><div class="cms-slide-bar" contenteditable="false">第 <%= k + 1 %> 張／共 <%= slides.length %> 張（顧客看到的是輪播）<button data-block-op="remove-slide" data-to="<%= k %>">刪除這張</button></div><% } %>
+              <div class="hero-main cms-banner" style="background-image:url('<%= B.src(k0(k, 'image'), '/img/hero.jpg') %>')"<%- B.bgAttr(k0(k, 'image')) %>>
+                <div class="hero-copy"><%- B.text(k0(k, 'title'), '標題', isHome && k === 0 && i === 0 ? 'h1' : 'h2') %><%- B.text(k0(k, 'text'), '', 'p') %><% if ((sl.button && sl.button.text) || ed) { %><%- B.link(k0(k, 'button'), '立即選購', '/shop', 'btn btn-primary btn-lg') %><% } %></div>
+              </div>
+            </div>
+          <% }) %>
+          </div>
+          <% if (slides.length > 1 && !ed) { %>
+            <button class="car-btn prev" data-car-prev aria-label="上一張">‹</button>
+            <button class="car-btn next" data-car-next aria-label="下一張">›</button>
+            <div class="car-dots"><% slides.forEach((sl, k) => { %><button data-car-dot="<%= k %>" aria-label="第 <%= k + 1 %> 張" <%- k === 0 ? 'aria-current="true"' : '' %>></button><% }) %></div>
+          <% } %>
+        </div>
+      </section>
+
+    <% } else if (b.type === 'sys') { %>
+      <%- include('home-sections', { sid: d.id }) %>
+
+    <% } else if (b.type === 'richtext') { %>
+      <section class="container cms-pad cms-narrow"><%- B.text('title', '', 'h2') %><%- B.html('body', '') %></section>
+
+    <% } else if (b.type === 'html') { %>
+      <div class="container page doc cms-pad"><%- B.html('html', '') %></div>
+
+    <% } else if (b.type === 'imagetext') { %>
+      <section class="container cms-pad">
+        <div class="cms-it <%= d.reverse ? 'rev' : '' %>">
+          <img src="<%= B.src('image', '/img/03_caring-support.webp') %>" alt="" loading="lazy"<%- B.imgAttr('image') %>>
+          <div><%- B.text('title', '', 'h2') %><%- B.html('body', '') %><% if ((d.button && d.button.text) || ed) { %><%- B.link('button', '了解更多', '/shop', 'btn btn-outline') %><% } %></div>
+        </div>
+      </section>
+
+    <% } else if (b.type === 'cards') { %>
+      <section class="container cms-pad">
+        <% if ((d.title) || ed) { %><div class="sec-head center-head"><div><%- B.text('title', '', 'h2') %></div></div><% } %>
+        <div class="cms-cards">
+          <% (d.items || []).forEach((it, k) => { %>
+            <div class="value cms-card">
+              <% if (ed) { %><button class="cms-x" data-block-op="remove-item" data-to="<%= k %>" title="移除這張卡片" contenteditable="false">×</button><% } %>
+              <img src="<%= B.src(`items.${k}.image`, '') %>" alt="" loading="lazy"<%- B.imgAttr(`items.${k}.image`) %>>
+              <div><%- B.text(`items.${k}.title`, '', 'h3') %><%- B.text(`items.${k}.text`, '', 'p') %><% if ((it.link && it.link.text) || ed) { %><%- B.link(`items.${k}.link`, '查看', '/shop', 'more') %><% } %></div>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+
+    <% } else if (b.type === 'buttons') { %>
+      <section class="cms-cta"><div class="container center"><%- B.text('title', '', 'h2') %><%- B.text('text', '', 'p') %>
+        <div class="cms-btns"><%- B.link('button', '立即選購', '/shop', 'btn btn-primary btn-lg') %><% if ((d.button2 && d.button2.text) || ed) { %><%- B.link('button2', '聯絡我們', '/contactus', 'btn btn-outline btn-lg') %><% } %></div>
+      </div></section>
+
+    <% } else if (b.type === 'image') { %>
+      <section class="container cms-pad">
+        <figure class="cms-figure">
+          <% if (d.link && d.link.href && !ed) { %><a href="<%= d.link.href %>"><% } %>
+          <img src="<%= B.src('image', '/img/hero.jpg') %>" alt="<%= d.caption || '' %>" loading="lazy"<%- B.imgAttr('image') %>>
+          <% if (d.link && d.link.href && !ed) { %></a><% } %>
+          <% if (d.caption || ed) { %><figcaption><%- B.text('caption', '', 'span') %></figcaption><% } %>
+          <% if (ed) { %><p class="cms-hint">圖片連結：<%- B.link('link', '（點此設定，可留空）', '', 'small') %></p><% } %>
+        </figure>
+      </section>
+
+    <% } else if (b.type === 'products') { %>
+      <section class="container cms-pad">
+        <div class="sec-head"><div><%- B.text('title', '推薦商品', 'h2') %></div><a href="/shop" class="more">查看全部 ›</a></div>
+        <% if (!(b._products || []).length) { %><p class="muted">這個來源目前沒有商品</p><% } else { %>
+        <div class="rail" data-rail>
+          <button class="rail-btn prev" data-rail-prev aria-label="上一組" hidden>‹</button>
+          <div class="rail-track" data-rail-track><% b._products.forEach(p => { %><%- include('product-card', { p }) %><% }) %></div>
+          <button class="rail-btn next" data-rail-next aria-label="下一組">›</button>
+        </div><% } %>
+      </section>
+
+    <% } else if (b.type === 'faq') { %>
+      <section class="container cms-pad cms-narrow">
+        <%- B.text('title', '常見問題', 'h2') %>
+        <% (d.items || []).forEach((it, k) => { %>
+          <details class="faq" <%= ed ? 'open' : '' %>>
+            <summary><%- B.text(`items.${k}.q`, '', 'span') %><% if (ed) { %><button class="cms-x" data-block-op="remove-item" data-to="<%= k %>" title="移除這一題" contenteditable="false">×</button><% } %></summary>
+            <%- B.text(`items.${k}.a`, '', 'p') %>
+          </details>
+        <% }) %>
+      </section>
+    <% } %>
+  </div>
+  <% if (ed) { %><button class="cms-add" data-block-add="<%= i + 1 %>">＋ 新增區塊</button><% } %>
+<% }) %>
+<% if (ed && !page.blocks.length) { %><p class="cms-empty">這個頁面還沒有內容，按「＋ 新增區塊」開始。</p><% } %>
+</div>

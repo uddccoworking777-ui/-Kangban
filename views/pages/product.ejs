@@ -1,0 +1,150 @@
+<%- include('../partials/head') %>
+<% const lowStock = product.trackStock && !product.soldOut && product.stock <= Number(settings.low_stock_threshold || 0);
+   const absImg = (u) => u.startsWith('http') ? u : siteUrl + u;
+   const seller = settings.company_name.startsWith('【') ? siteName : settings.company_name; %>
+<% const showSummary = settings.aeo_show_summary !== '0', showFaq = settings.aeo_show_faq !== '0' && product.faq.length, faqLd = settings.aeo_faq_ld !== '0' && product.faq.length, ldOn = settings.aio_ld !== '0'; %>
+<% if (ldOn) { %><script type="application/ld+json"><%- JSON.stringify({
+  '@context': 'https://schema.org', '@type': 'Product', name: product.name, sku: product.sku || undefined,
+  image: [product.image, ...product.images].map(absImg), description: product.metaDescription || product.description,
+  countryOfOrigin: product.origin || undefined,
+  manufacturer: product.manufacturer ? { '@type': 'Organization', name: product.manufacturer } : undefined,
+  additionalProperty: product.spec.split('\n').filter(l => /[:：]/.test(l)).map(l => { const i = l.search(/[:：]/); return { '@type': 'PropertyValue', name: l.slice(0, i).trim(), value: l.slice(i + 1).trim() }; }).concat(product.licenseNo ? [{ '@type': 'PropertyValue', name: '醫療器材許可證字號', value: product.licenseNo }] : []),
+  brand: productBrands[0] ? { '@type': 'Brand', name: productBrands[0].name } : undefined,
+  offers: { '@type': 'Offer', priceCurrency: 'TWD', price: product.price, url: canonical,
+    availability: product.soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock' },
+}).replace(/</g, '\\u003c') %></script><% } %>
+<% if (faqLd) { %><script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: product.faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }).replace(/</g, '\\u003c') %></script><% } %>
+<% if (ldOn) { %><script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+  { '@type': 'ListItem', position: 1, name: '所有產品', item: siteUrl + '/shop' },
+  ...(category ? [{ '@type': 'ListItem', position: 2, name: category.name, item: siteUrl + catUrl(category) }] : []),
+  { '@type': 'ListItem', position: category ? 3 : 2, name: product.name } ] }).replace(/</g, '\\u003c') %></script><% } %>
+
+<div class="container page">
+  <nav class="crumbs"><a href="/shop">所有產品</a><% if (category) { %> / <a href="<%= catUrl(category) %>"><%= category.name %></a><% } %> / <span><%= product.name %></span></nav>
+  <div class="product">
+    <div class="gallery">
+      <div class="gallery-main"><img src="<%= product.image %>" alt="<%= product.name %>" data-gallery-main onerror="this.src='/img/logo.webp'" width="800" height="800"></div>
+      <% const imgs = [product.image, ...(product.images || [])]; if (imgs.length > 1) { %>
+        <div class="thumbs"><% imgs.forEach((src, i) => { %><button class="<%= i === 0 ? 'on' : '' %>" data-thumb="<%= src %>" aria-label="第 <%= i + 1 %> 張圖"><img src="<%= src %>" alt="" loading="lazy"></button><% }) %></div>
+      <% } %>
+    </div>
+
+    <div class="buybox">
+      <% if (productBrands.length) { %><a href="/shop?brand=<%= productBrands[0].id %>" class="brand-link"><%= productBrands[0].name %></a><% } %>
+      <h1><%= product.name %></h1>
+      <% if (product.licenseNo) { %>
+        <p class="license-line"><span class="lic-badge">衛福部許可證</span><%= product.licenseNo %> <a href="<%= settings.fda_lookup_url %>" target="_blank" rel="noopener" class="small">查詢 ↗</a></p>
+      <% } %>
+      <div class="price big"><%= money(product.price) %><% if (product.comparePrice) { %> <s class="was"><%= money(product.comparePrice) %></s> <span class="save">省 <%= money(product.comparePrice - product.price) %></span><% } %></div>
+      <p class="stock-line <%= product.soldOut ? 'stock-out' : lowStock ? 'stock-low' : 'stock-ok' %>">
+        <%= product.soldOut ? '已售完' : lowStock ? `庫存剩 ${product.stock} 件` : '現貨供應' %>
+        <% if (!product.soldOut) { %><span class="muted">・付款後 <%= settings.ship_days %> 個工作天內出貨</span><% } %>
+      </p>
+      <p class="desc"><%= product.description %></p>
+      <% if (showSummary && product.summary.length) { %>
+        <div class="key-points" aria-label="重點摘要"><b>重點摘要</b><ul><% product.summary.forEach(l => { %><li><%= l %></li><% }) %></ul></div>
+      <% } %>
+
+      <form action="/shop/cart/update" method="post" class="buy-form" data-add-cart id="buy-form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="product_id" value="<%= product.id %>">
+        <% if (product.sizeChart) { %><button type="button" class="link-btn size-btn" data-open-modal="size-chart">查看尺寸對照表 ›</button><% } %>
+        <div class="buy-row">
+          <div class="qty"><button type="button" data-qty="-1" aria-label="減少">−</button><input type="number" name="add_qty" value="1" min="1" max="<%= product.trackStock ? Math.max(1, product.stock) : 999 %>" aria-label="數量"><button type="button" data-qty="1" aria-label="增加">＋</button></div>
+          <button class="btn btn-primary btn-lg" <%= product.soldOut ? 'disabled' : '' %>><%= product.soldOut ? '已售完' : '加入購物車' %></button>
+          <button class="btn btn-outline btn-lg" name="express" value="1" data-no-ajax <%= product.soldOut ? 'disabled' : '' %>>立即購買</button>
+        </div>
+      </form>
+      <% if (product.soldOut) { %><p class="small"><a href="/contactus">聯絡我們</a>詢問到貨時間</p><% } %>
+      <div class="buy-links">
+        <button class="link-btn <%= wishlist.includes(product.id) ? 'on' : '' %>" data-wishlist="<%= product.id %>"><svg><use href="#<%= wishlist.includes(product.id) ? 'i-heart-fill' : 'i-heart' %>"/></svg> 加入願望清單</button>
+        <button class="link-btn <%= compare.includes(product.id) ? 'on' : '' %>" data-compare="<%= product.id %>"><svg><use href="#i-compare"/></svg> 加入比較</button>
+        <a class="link-btn" href="<%= settings.line_url || '/contactus' %>">諮詢客服</a>
+      </div>
+      <ul class="assure">
+        <li><svg><use href="#i-truck"/></svg><span><b>滿 <%= money(freeShip) %> 免運</b>宅配 <%= money(ship.home.fee) %>・超商取貨 <%= money(ship.cvs.fee) %></span></li>
+        <li><svg><use href="#i-return"/></svg><span><b>7 天鑑賞期</b>未拆封商品可退換，<a href="/return-policy">退換貨政策</a></span></li>
+        <li><svg><use href="#i-tag"/></svg><span><b>付款方式</b>信用卡・ATM 轉帳・超商取貨付款</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="tabs-wrap" data-tabs>
+    <div class="ptabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="intro">商品介紹</button>
+      <button role="tab" aria-selected="false" data-tab="spec">規格與許可證</button>
+      <% if (product.sizeChart) { %><button role="tab" aria-selected="false" data-tab="size">尺寸對照表</button><% } %>
+      <% if (showFaq) { %><button role="tab" aria-selected="false" data-tab="faq">常見問答</button><% } %>
+      <button role="tab" aria-selected="false" data-tab="notice">使用注意事項</button>
+      <button role="tab" aria-selected="false" data-tab="ship">配送與退換貨</button>
+    </div>
+    <div class="ptab" data-panel="intro">
+      <% if (product.descriptionHtml) { %><div class="rich"><%- product.descriptionHtml %></div><% } else { %><p class="pre"><%= product.description %></p><% } %>
+    </div>
+    <div class="ptab" data-panel="spec" hidden>
+      <table class="spec-table">
+        <tr><th>品名</th><td><%= product.name %></td></tr>
+        <% if (product.sku) { %><tr><th>商品編號</th><td><%= product.sku %></td></tr><% } %>
+        <% if (productBrands.length) { %><tr><th>品牌</th><td><%= productBrands[0].name %></td></tr><% } %>
+        <% if (product.origin) { %><tr><th>產地</th><td><%= product.origin %></td></tr><% } %>
+        <% product.spec.split('\n').filter(Boolean).filter(l => !(product.origin && /^產地[:：]/.test(l))).forEach(line => { const i = line.search(/[:：]/); %>
+          <tr><th><%= i > 0 ? line.slice(0, i) : '規格' %></th><td><%= i > 0 ? line.slice(i + 1).trim() : line %></td></tr>
+        <% }) %>
+        <% if (product.licenseNo) { %>
+          <tr><th>醫療器材許可證字號</th><td><%= product.licenseNo %>（<a href="<%= settings.fda_lookup_url %>" target="_blank" rel="noopener">食藥署許可證查詢</a>）</td></tr>
+          <% if (product.licenseHolder) { %><tr><th>許可證所有人</th><td><%= product.licenseHolder %></td></tr><% } %>
+          <% if (product.manufacturer) { %><tr><th>製造業者</th><td><%= product.manufacturer %></td></tr><% } %>
+        <% } %>
+        <tr><th>販售業者</th><td><%= seller %><br><span class="muted small">醫療器材販賣業藥商許可執照 <%= settings.license_no %>・<%= settings.address %></span></td></tr>
+        <tr><th>消費者諮詢專線</th><td><%= settings.phone %>（<%= settings.service_hours %>）</td></tr>
+      </table>
+    </div>
+    <% if (product.sizeChart) { %><div class="ptab rich size-chart" data-panel="size" hidden><%- product.sizeChart %></div><% } %>
+    <% if (showFaq) { %>
+    <div class="ptab" data-panel="faq" hidden>
+      <% product.faq.forEach(f => { %><details class="faq" open><summary><%= f.q %></summary><p class="pre"><%= f.a %></p></details><% }) %>
+    </div>
+    <% } %>
+    <div class="ptab" data-panel="notice" hidden>
+      <div class="warn-box"><strong>使用前請詳閱說明書及注意事項</strong></div>
+      <ul class="notice-list"><% (product.precautions || '如有身體不適，請諮詢醫師或藥師。').split('\n').filter(Boolean).forEach(l => { %><li><%= l %></li><% }) %></ul>
+      <p class="muted small">本商店無法提供醫療診斷或治療建議。商品說明僅供參考，實際效果因人而異。</p>
+    </div>
+    <div class="ptab" data-panel="ship" hidden>
+      <table class="spec-table">
+        <tr><th>出貨時間</th><td>付款完成後 <%= settings.ship_days %> 個工作天內出貨（不含例假日）</td></tr>
+        <tr><th>宅配到府</th><td><%= money(ship.home.fee) %>，單筆滿 <%= money(freeShip) %> 免運，出貨後約 <%= settings.delivery_days %> 天送達</td></tr>
+        <tr><th>超商取貨</th><td><%= money(ship.cvs.fee) %>，單筆滿 <%= money(freeShip) %> 免運</td></tr>
+        <tr><th>配送範圍</th><td>台灣本島；離島請先聯繫客服</td></tr>
+        <tr><th>退換貨</th><td>到貨 7 天內（含例假日）可申請，商品需保持全新、包裝完整。已拆封之個人衛生用品不適用。詳見 <a href="/return-policy">退換貨政策</a></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <% if (related.length) { %>
+    <section class="section">
+      <h2>相關商品</h2>
+      <div class="grid products"><% related.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %></div>
+    </section>
+  <% } %>
+  <% if (recent.length) { %>
+    <section class="section recent">
+      <h2>最近瀏覽</h2>
+      <div class="grid products"><% recent.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %></div>
+    </section>
+  <% } %>
+</div>
+
+<% if (product.sizeChart) { %>
+<dialog class="modal" id="size-chart" aria-labelledby="size-title">
+  <div class="modal-head"><h2 id="size-title">尺寸對照表</h2><button class="icon-btn" data-close-modal aria-label="關閉"><svg><use href="#i-close"/></svg></button></div>
+  <div class="rich size-chart"><%- product.sizeChart %></div>
+  <p class="small muted">如果剛好卡在兩個尺碼之間，歡迎 <a href="<%= settings.line_url || '/contactus' %>">詢問客服</a>。</p>
+</dialog>
+<% } %>
+
+<div class="sticky-buy" data-sticky-buy hidden>
+  <div><strong class="price"><%= money(product.price) %></strong><span class="muted small"><%= product.soldOut ? '已售完' : '現貨供應' %></span></div>
+  <button class="btn btn-primary" form="buy-form" <%= product.soldOut ? 'disabled' : '' %>>加入購物車</button>
+</div>
+<%- include('../partials/foot') %>

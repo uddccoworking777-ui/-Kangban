@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title><%= title %> · <%= settings.store_name %> 管理</title>
+<link rel="stylesheet" href="<%= asset('css/admin.css') %>">
+<link rel="icon" href="/img/logo.webp">
+<meta name="csrf-token" content="<%= csrf %>">
+</head>
+<body>
+<% const I = {
+  home: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z',
+  order: 'M6 2h12l2 4v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6zM4 6h16M9 10a3 3 0 0 0 6 0',
+  product: 'M21 7.5 12 3 3 7.5v9L12 21l9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
+  tag: 'M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9zM8 8h.01',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
+  inbox: 'M3 13h5l2 3h4l2-3h5M5 5h14l2 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z',
+  upload: 'M12 16V4m0 0L7 9m5-5 5 5M4 20h16',
+  cog: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  team: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+  ext: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+  search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4',
+  edit: 'M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4',
+  page: 'M6 2h9l5 5v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM14 2v6h6M8 13h8M8 17h6',
+  menu: 'M4 6h16M4 12h16M4 18h10',
+  spark: 'M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z',
+  store: 'M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6',
+};
+const groups = [
+  [null, [['/admin', '總覽', 'home']]],
+  ['銷售', [['/admin/orders', '訂單', 'order', badge.orders], ['/admin/customers', '顧客', 'user'], ['/admin/messages', '客服訊息', 'inbox', badge.messages]]],
+  ['商品', [['/admin/products', '商品', 'product'], ['/admin/categories', '分類', 'folder'], ['/admin/brands', '品牌', 'tag'], ['/admin/import', '匯入／匯出', 'upload']]],
+  ['網站', [['/admin/cms/edit?on=1&back=/', '前台編輯', 'edit'], ['/admin/pages', '頁面', 'page'], ['/admin/menus', '選單', 'menu'], ['/admin/geo', 'AI 搜尋優化', 'spark']]],
+  ...(admin.role === 'owner' ? [['系統', [['/admin/settings', '商店設定', 'cog'], ['/admin/admins', '帳號與權限', 'team'], ['/admin/logs', '操作紀錄', 'clock']]]] : []),
+];
+const isActive = (href) => href === '/admin' ? path === '/' : ('/admin' + path).startsWith(href);
+const ico = (n) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${I[n]}"/></svg>`; %>
+<div class="shell">
+  <aside class="side" id="side">
+    <div class="side-brand"><img src="/img/logo.webp" alt="<%= settings.store_name %>" height="26"><span class="faint small">管理後台</span></div>
+    <nav aria-label="後台選單">
+      <% groups.forEach(([label, items]) => { %>
+        <% if (label) { %><div class="nav-label"><%= label %></div><% } %>
+        <% items.forEach(([href, text, icon, n]) => { %>
+          <a href="<%= href %>" class="<%= isActive(href) ? 'on' : '' %>" <%= isActive(href) ? 'aria-current=page' : '' %>><%- ico(icon) %><span><%= text %></span><% if (n) { %><b class="cnt"><%= n %></b><% } %></a>
+        <% }) %>
+      <% }) %>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="menu-btn" onclick="document.body.classList.toggle('side-open')" aria-label="開啟選單">☰</button>
+      <form action="/admin/search" class="gsearch" role="search">
+        <%- ico('search') %><input type="search" name="q" placeholder="搜尋訂單編號、顧客、電話、商品、貨號" value="<%= typeof q === 'string' ? q : '' %>" aria-label="全站搜尋"><kbd>/</kbd>
+      </form>
+      <div class="top-user">
+        <a href="/" class="btn btn-sm btn-front" title="回到前台商店"><%- ico('store') %><span>回到前台</span></a>
+        <a href="/admin/profile" class="avatar" title="我的帳號"><%= admin.name.slice(0, 1) %></a>
+        <div class="who"><a href="/admin/profile"><%= admin.name %></a><span><%= admin.role === 'owner' ? '擁有者' : '員工' %></span></div>
+        <a href="/admin/logout" class="btn btn-sm">登出</a>
+      </div>
+    </header>
+    <% if (adminFlash) { %><div class="flash flash-<%= adminFlash.type %>" role="status"><%= adminFlash.text %></div><% } %>
+    <div class="content">
+      <div class="ph">
+        <div>
+          <% if (typeof crumb !== 'undefined' && crumb) { %><a href="<%= crumb[0] %>" class="ph-crumb">‹ <%= crumb[1] %></a><% } %>
+          <h1><%= title %></h1>
+        </div>
+        <div class="ph-actions"><% if (typeof actions !== 'undefined') { %><%- actions %><% } %></div>
+      </div>

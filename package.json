@@ -1,0 +1,22 @@
+{
+  "name": "kangban-shop",
+  "version": "1.0.0",
+  "description": "康伴 健康照護電商網站",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "multer": "^2.0.2"
+  }
+}

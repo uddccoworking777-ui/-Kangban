@@ -1,0 +1,73 @@
+<%- include('../partials/head') %>
+<% const err = (k) => errors[k] ? `<span class="err">${errors[k]}</span>` : ''; const v = (k) => form[k] || ''; %>
+<div class="container page">
+  <ol class="steps"><li class="done">購物車</li><li class="on">填寫資料</li><li>完成訂購</li></ol>
+  <% if (errors.stock) { %><div class="alert"><%= errors.stock %>，請回到<a href="/shop/cart">購物車</a>調整數量。</div><% } else if (Object.keys(errors).length) { %><div class="alert">請修正下方標示的欄位。</div><% } %>
+  <form method="post" class="cart-layout" data-checkout>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="checkout-form">
+      <h1 class="h2">填寫訂購資料</h1>
+      <% if (!user) { %><p class="muted">已經是會員？<a href="/web/login?redirect=/shop/checkout">登入</a>可自動帶入資料並查詢訂單紀錄。不加入會員也可以直接結帳。</p><% } %>
+      <fieldset>
+        <legend>收件人資料</legend>
+        <div class="fields">
+          <label>姓名 *<input name="name" value="<%= v('name') %>" required autocomplete="name"><%- err('name') %></label>
+          <label>手機 *<input name="phone" value="<%= v('phone') %>" required inputmode="tel" autocomplete="tel" placeholder="0912345678"><%- err('phone') %></label>
+          <label class="full">Email *<input type="email" name="email" value="<%= v('email') %>" required autocomplete="email"><%- err('email') %></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>配送方式</legend>
+        <% Object.entries(ship).forEach(([k, s]) => { %>
+          <label class="opt"><input type="radio" name="shipping" value="<%= k %>" data-fee="<%= s.fee %>" <%= (v('shipping') || 'home') === k ? 'checked' : '' %>> <span><%= s.label %></span><span class="muted">NT$ <%= s.fee %>（滿 <%= money(freeShip) %> 免運）</span></label>
+        <% }) %>
+        <%- err('shipping') %>
+        <div class="fields" data-ship="home">
+          <label>郵遞區號<input name="zip" value="<%= v('zip') %>" autocomplete="postal-code" inputmode="numeric"></label>
+          <label>縣市 *<input name="city" value="<%= v('city') %>" autocomplete="address-level1" placeholder="台北市"></label>
+          <label class="full">地址 *<input name="street" value="<%= v('street') %>" autocomplete="street-address" placeholder="區、路、巷、號、樓"><%- err('street') %></label>
+        </div>
+        <div class="fields" data-ship="cvs">
+          <label class="full">取貨門市 *<input name="cvs_store" value="<%= v('cvs_store') %>" placeholder="例如：7-11 台北站前門市（門市店號）"><%- err('cvs_store') %></label>
+        </div>
+        <p class="muted small">配送範圍：台灣本島。離島地區請先與客服聯繫。</p>
+      </fieldset>
+      <fieldset>
+        <legend>付款方式</legend>
+        <% Object.entries(payments).forEach(([k, label]) => { %>
+          <label class="opt"><input type="radio" name="payment" value="<%= k %>" <%= (v('payment') || 'atm') === k ? 'checked' : '' %>> <span><%= label %></span></label>
+        <% }) %>
+        <%- err('payment') %>
+      </fieldset>
+      <fieldset>
+        <legend>發票</legend>
+        <% Object.entries(invoices).forEach(([k, label]) => { %>
+          <label class="opt"><input type="radio" name="invoice" value="<%= k %>" <%= (v('invoice') || 'member') === k ? 'checked' : '' %>> <span><%= label %></span></label>
+        <% }) %>
+        <div class="fields" data-inv="mobile"><label class="full">手機條碼<input name="carrier" value="<%= v('carrier') %>" placeholder="/ABC1234"><%- err('carrier') %></label></div>
+        <div class="fields" data-inv="company">
+          <label>統一編號<input name="vat" value="<%= v('vat') %>" inputmode="numeric" maxlength="8"><%- err('vat') %></label>
+          <label>公司抬頭<input name="company_name" value="<%= v('company_name') %>"></label>
+        </div>
+        <div class="fields" data-inv="donate"><label class="full">捐贈碼（選填）<input name="donate_code" value="<%= v('donate_code') %>"></label></div>
+      </fieldset>
+      <fieldset>
+        <legend>訂單備註</legend>
+        <textarea name="note" rows="3" placeholder="有什麼需要告訴我們的嗎？"><%= v('note') %></textarea>
+      </fieldset>
+      <label class="check"><input type="checkbox" name="agree" value="1" <%= v('agree') ? 'checked' : '' %>> 我已閱讀並同意 <a href="/shopping-guide" target="_blank">購物須知</a> 與 <a href="/return-policy" target="_blank">退換貨政策</a></label>
+      <%- err('agree') %>
+    </div>
+    <aside class="summary">
+      <h3>訂單內容</h3>
+      <% lines.forEach(l => { %><div class="row item"><span><%= l.product.name %> × <%= l.qty %></span><span><%= money(l.subtotal) %></span></div><% }) %>
+      <div class="row"><span>小計</span><span><%= money(subtotal) %></span></div>
+      <div class="row"><span>運費</span><span data-co-fee></span></div>
+      <div class="row total"><span>總計</span><span data-co-total></span></div>
+      <button class="btn btn-primary btn-lg btn-block">確認下單</button>
+      <a href="/shop/cart" class="btn btn-ghost btn-block">返回購物車</a>
+    </aside>
+    <script type="application/json" id="co-data"><%- JSON.stringify({ subtotal, freeShip }) %></script>
+  </form>
+</div>
+<%- include('../partials/foot') %>

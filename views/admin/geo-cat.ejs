@@ -1,0 +1,101 @@
+<%- include('_top', { actions: `<a class="btn" href="/llms.txt" target="_blank">查看 llms.txt</a><a class="btn" href="/robots.txt" target="_blank">查看 robots.txt</a>` }) %>
+<%- include('_geo-tabs') %>
+<% const tone = (n) => n >= 85 ? 'st-completed' : n >= 60 ? 'st-pending' : 'st-cancelled';
+   const notes = {
+     geo: '影響最大的是網站以外的因素：網站有沒有被 Google／Bing 收錄（ChatGPT 的搜尋大量依賴 Bing）、新聞、部落客、PTT、Dcard、電商評價等有沒有提到你。網站內能做的，是把商品資訊寫得具體可信、補齊公司資訊，並允許 AI 回答用爬蟲來讀。llms.txt 目前大多數 AI 不會讀取，效果很小。',
+     aeo: '重點摘要和常見問答對真人顧客一樣有幫助，就算 AI 沒有引用也值得做。不過 Google 目前只對政府與權威醫療網站顯示「常見問答」搜尋結果，問答結構化資料的效果有限。',
+     aio: 'Google 的「AI 摘要」主要依一般搜尋排名挑選來源，不需要特別的標記。做好一般搜尋優化（搜尋描述、頁面內容、網站地圖、被 Google 收錄）就是 AIO。GEO 裡的 Google-Extended（訓練用爬蟲）只影響 Gemini 的模型訓練，不會讓你從 AI 摘要消失。',
+   }; %>
+
+<%- include('_geo-explain', { c: cat, openExplain: false }) %>
+<div class="cols cols-wide">
+  <div>
+    <div class="card geo-score">
+      <div class="geo-big"><b class="<%= tone(cat.score) %>"><%= cat.score %></b><span>／100</span></div>
+      <div style="flex:1">
+        <h2 style="margin-bottom:2px"><span class="geo-tag"><%= cat.name %></span> <%= cat.full %>・優化程度</h2>
+        <p class="muted small" style="margin:4px 0 10px"><%= cat.goal %></p>
+        <div class="geo-bar"><span style="width:<%= cat.score %>%"></span></div>
+        <p class="small muted" style="margin:8px 0 0">內容 <%= cat.itemScore %>・設定 <%= cat.siteScore %><% if (cat.fixable) { %>・<b><%= cat.fixable %></b> 項可以自動補齊<% } %></p>
+      </div>
+    </div>
+
+    <form class="card" method="post" action="/admin/geo/fix">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="cat" value="<%= tab %>">
+      <h2><%= cat.name %> 自動補齊</h2>
+      <p class="small muted" style="margin-top:-6px">依商品名稱、說明、規格、價格和商店設定自動產生，<b>預設只補空白的欄位</b>，不會覆蓋你自己寫的內容。</p>
+      <div class="geo-opts"><% FIX.forEach(([k, label]) => { %><label class="inline"><input type="checkbox" name="targets" value="<%= k %>" checked> <%= label %></label><% }) %></div>
+      <label class="inline" style="margin:10px 0"><input type="checkbox" name="overwrite" value="1"> 重新產生並覆蓋已有內容（不建議）</label>
+      <div><button class="btn btn-primary" data-confirm-overwrite>開始自動補齊</button></div>
+    </form>
+
+    <div class="card flush">
+      <div class="card-head">
+        <h2><%= cat.name %> 內容健檢</h2>
+        <div class="seg"><a href="?tab=<%= tab %>&f=issues" class="<%= filter !== 'all' ? 'on' : '' %>">待改善</a><a href="?tab=<%= tab %>&f=all" class="<%= filter === 'all' ? 'on' : '' %>">全部</a></div>
+      </div>
+      <% if (!items.length) { %><p class="empty">全部都達標了</p><% } else { %>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>類型</th><th>名稱</th><th class="r">分數</th><th>待改善</th><th></th></tr></thead>
+        <tbody><% items.forEach(it => { %>
+          <tr>
+            <td class="muted small nowrap"><%= it.type %></td>
+            <td><a href="<%= it.url %>" target="_blank" rel="noopener"><%= it.name %></a></td>
+            <td class="r"><span class="st <%= tone(it.score) %> num"><%= it.score %></span></td>
+            <td class="small"><% if (!it.issues.length) { %><span class="faint">—</span><% } else { %><ul class="geo-issues"><% it.issues.forEach(m => { %><li><%= m %></li><% }) %></ul><% } %></td>
+            <td class="r"><a class="btn btn-sm" href="<%= it.edit %>">修改</a></td>
+          </tr>
+        <% }) %></tbody>
+      </table></div><% } %>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>設定檢查</h2>
+      <ul class="list">
+        <% cat.site.forEach(c => { %><li><span><span class="st <%= c.ok ? 'st-completed' : 'st-pending' %>" title="<%= c.ok ? '已完成' : '待處理' %>"></span><%= c.msg %><% if (!c.ok && c.fix) { %><br><span class="faint small"><%= c.fix %></span><% } %></span></li><% }) %>
+      </ul>
+    </div>
+
+    <form class="card" method="post" action="/admin/geo/settings" id="settings">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="cat" value="<%= tab %>">
+      <h2><%= cat.name %> 設定</h2>
+      <% if (tab === 'geo') { %>
+        <label>AI 回答用爬蟲
+          <select name="geo_bots_answer"><option value="allow" <%= s.geo_bots_answer !== 'block' ? 'selected' : '' %>>允許（建議）</option><option value="block" <%= s.geo_bots_answer === 'block' ? 'selected' : '' %>>禁止</option></select>
+          <span class="hint">AI 回答問題、搜尋時來讀網頁，和被引用直接相關。禁止就不會被引用。包含：<%= answerBots.join('、') %></span>
+        </label>
+        <label>AI 訓練用爬蟲
+          <select name="geo_bots_train"><option value="allow" <%= s.geo_bots_train !== 'block' ? 'selected' : '' %>>允許</option><option value="block" <%= s.geo_bots_train === 'block' ? 'selected' : '' %>>禁止</option></select>
+          <span class="hint">收集資料用來訓練 AI 模型。禁止通常不影響被引用，可依你的意願決定。包含：<%= trainBots.join('、') %></span>
+        </label>
+        <label class="inline check-line"><input type="checkbox" name="geo_llms" value="1" <%= s.geo_llms !== '0' ? 'checked' : '' %>> 提供 llms.txt（給 AI 讀的網站摘要）</label>
+        <label>網站摘要（llms.txt）<span class="hint">留空會自動產生</span><textarea name="llms_summary" rows="5" placeholder="<%= summary %>"><%= s.llms_summary %></textarea></label>
+      <% } else if (tab === 'aeo') { %>
+        <label class="inline check-line"><input type="checkbox" name="aeo_show_summary" value="1" <%= s.aeo_show_summary !== '0' ? 'checked' : '' %>> 商品頁顯示「重點摘要」</label>
+        <label class="inline check-line"><input type="checkbox" name="aeo_show_faq" value="1" <%= s.aeo_show_faq !== '0' ? 'checked' : '' %>> 商品頁顯示「常見問答」分頁</label>
+        <label class="inline check-line"><input type="checkbox" name="aeo_faq_ld" value="1" <%= s.aeo_faq_ld !== '0' ? 'checked' : '' %>> 輸出問答結構化資料（FAQPage）</label>
+        <label>自動產生問答時，每個商品最多幾題<select name="aeo_faq_max"><% [3, 4, 5, 6, 8, 10].forEach(n => { %><option <%= Number(s.aeo_faq_max) === n ? 'selected' : '' %>><%= n %></option><% }) %></select></label>
+        <label class="inline check-line"><input type="checkbox" name="aeo_auto" value="1" <%= s.aeo_auto !== '0' ? 'checked' : '' %>> 新增或儲存商品時，自動補齊空白的重點摘要與常見問答</label>
+      <% } else { %>
+        <label class="inline check-line"><input type="checkbox" name="aio_ld" value="1" <%= s.aio_ld !== '0' ? 'checked' : '' %>> 輸出結構化資料（商品、麵包屑、商品清單、網站搜尋）</label>
+        <label>自動產生搜尋描述的長度<select name="aio_meta_len"><% [[120, '120 字（較精簡）'], [150, '150 字（建議）'], [160, '160 字（較完整）']].forEach(([n, l]) => { %><option value="<%= n %>" <%= Number(s.aio_meta_len) === n ? 'selected' : '' %>><%= l %></option><% }) %></select></label>
+        <label class="inline check-line"><input type="checkbox" name="aio_auto" value="1" <%= s.aio_auto !== '0' ? 'checked' : '' %>> 新增或儲存商品時，自動補齊空白的搜尋描述</label>
+      <% } %>
+      <button class="btn btn-primary btn-block" <%= admin.role === 'owner' ? '' : 'disabled title="只有擁有者可以修改"' %>>儲存 <%= cat.name %> 設定</button>
+    </form>
+
+    <div class="card">
+      <h2>實際效果</h2>
+      <p class="small muted" style="margin:0"><%= notes[tab] %></p>
+    </div>
+  </div>
+</div>
+<script>
+document.querySelector('[data-confirm-overwrite]')?.addEventListener('click', (e) => {
+  const f = e.target.form;
+  if (f.overwrite.checked && !confirm('會用自動產生的內容覆蓋你已經寫好的內容，確定嗎？')) e.preventDefault();
+});
+</script>
+<%- include('_bottom') %>

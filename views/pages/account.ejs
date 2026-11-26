@@ -1,0 +1,30 @@
+<%- include('../partials/head') %>
+<div class="container page">
+  <h1 class="h2">我的帳戶</h1>
+  <div class="cart-layout">
+    <section id="orders">
+      <h3>我的訂單</h3>
+      <% if (!orders.length) { %><p class="muted">目前沒有訂單。</p><% } else { %>
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th>訂單編號</th><th>日期</th><th>狀態</th><th class="r">金額</th></tr></thead>
+          <tbody><% orders.forEach(o => { %><tr><td><a href="/my/orders/<%= o.id %>"><%= o.name %></a></td><td><%= o.created_at.slice(0, 10) %></td><td><span class="pill"><%= states[o.status] %></span></td><td class="r"><%= money(o.total) %></td></tr><% }) %></tbody>
+        </table></div>
+      <% } %>
+    </section>
+    <aside class="summary">
+      <h3>個人資料</h3>
+      <form method="post" action="/my/account">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>姓名<input name="name" value="<%= customer?.name || '' %>" required></label>
+        <label>Email<input value="<%= customer?.email || user.email %>" disabled></label>
+        <label>手機<input name="phone" value="<%= customer?.phone || '' %>"></label>
+        <label>郵遞區號<input name="zip" value="<%= customer?.zip || '' %>"></label>
+        <label>縣市<input name="city" value="<%= customer?.city || '' %>"></label>
+        <label>地址<input name="street" value="<%= customer?.street || '' %>"></label>
+        <button class="btn btn-primary btn-block">儲存</button>
+      </form>
+      <a href="/web/session/logout" class="btn btn-ghost btn-block">登出</a>
+    </aside>
+  </div>
+</div>
+<%- include('../partials/foot') %>

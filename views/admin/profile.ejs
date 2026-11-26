@@ -1,0 +1,12 @@
+<%- include('_top') %>
+<form class="card narrow" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label>姓名<input name="name" value="<%= me.name %>" required></label>
+  <label>Email<input value="<%= me.email %>" disabled></label>
+  <h2>變更密碼</h2>
+  <label>目前密碼<input type="password" name="current" autocomplete="current-password"></label>
+  <label>新密碼（至少 8 字元）<input type="password" name="password" autocomplete="new-password"></label>
+  <label>確認新密碼<input type="password" name="confirm" autocomplete="new-password"></label>
+  <button class="btn btn-primary">儲存</button>
+</form>
+<%- include('_bottom') %>

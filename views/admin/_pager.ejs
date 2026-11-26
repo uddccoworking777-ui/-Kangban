@@ -1,0 +1,8 @@
+<% if (pg.pages > 1) { %>
+  <nav class="pager">
+    <% for (let i = 1; i <= pg.pages; i++) { if (pg.pages > 12 && Math.abs(i - pg.page) > 3 && i !== 1 && i !== pg.pages) { if (i === 2 || i === pg.pages - 1) { %><span>…</span><% } continue; } const q = new URLSearchParams(query); q.set('page', i); %>
+      <a href="?<%= q %>" class="<%= i === pg.page ? 'on' : '' %>"><%= i %></a>
+    <% } %>
+  </nav>
+<% } %>
+<p class="muted small">共 <%= pg.total %> 筆</p>

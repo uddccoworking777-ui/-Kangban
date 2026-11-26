@@ -1,0 +1,81 @@
+/* 網站編輯器（只有管理員編輯模式會載入） */
+body { padding-top: 48px; }
+.cms-toolbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: #1f2a24; color: #fff; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+.cms-toolbar strong { background: #e0a526; color: #1f2a24; padding: 2px 8px; border-radius: 4px; font-size: 13px; }
+.cms-tip { color: #b9c7bf; font-size: 13px; }
+.cms-status { margin-left: auto; color: #f3d48a; font-size: 13px; }
+.cms-tbtn { height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid #4b5a52; background: transparent; color: #fff; font: inherit; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap; }
+.cms-tbtn:hover { background: rgba(255,255,255,.08); color: #fff; }
+.cms-primary { background: #e0a526; border-color: #e0a526; color: #1f2a24; font-weight: 700; }
+.cms-primary:hover { background: #f0b73a; color: #1f2a24; }
+.cms-editable { outline: 1px dashed rgba(224,165,38,.7); outline-offset: 3px; cursor: text; border-radius: 2px; min-width: 1em; }
+.cms-editable:hover { outline-style: solid; background: rgba(224,165,38,.06); }
+.cms-editable:focus { outline: 2px solid #e0a526; background: #fffdf5; color: #1e2723; }
+[data-edit-text]:empty::before { content: '（點此輸入）'; color: #b0b0b0; }
+.cms-link { outline: 1px dashed rgba(47,107,85,.6); outline-offset: 3px; cursor: pointer; }
+.cms-link:hover { outline: 2px solid #2f6b55; }
+.cms-img { outline: 1px dashed rgba(224,165,38,.8); outline-offset: -3px; cursor: pointer; }
+.cms-img:hover { outline: 3px solid #e0a526; filter: brightness(.95); }
+.cms-chip { position: absolute; top: 8px; right: 8px; z-index: 6; height: 28px; padding: 0 10px; border-radius: 14px; border: 0; background: #1f2a24; color: #fff; font: inherit; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.25); white-space: nowrap; }
+.cms-chip:hover { background: #2f6b55; }
+.cms-chip-bg { top: auto; bottom: 12px; right: 12px; }
+.cms-rich { min-height: 2em; }
+.cms-rtb { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; gap: 2px; padding: 4px; background: #fff; border: 1px solid #d8ddd9; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+.cms-rtb button { height: 30px; min-width: 32px; padding: 0 8px; border: 0; background: none; border-radius: 5px; font: inherit; font-size: 13px; cursor: pointer; color: #1e2723; }
+.cms-rtb button:hover { background: #eef2ef; }
+.cms-launch { position: fixed; left: 16px; bottom: 20px; z-index: 900; height: 40px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 20px; background: #1f2a24; color: #fff; font-size: 14px; text-decoration: none; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+.cms-launch:hover { background: #2f6b55; color: #fff; }
+.cms-block { position: relative; }
+.cms-blocks[data-page-id] .cms-block { outline: 1px dashed transparent; outline-offset: -1px; }
+.cms-blocks[data-page-id] .cms-block:hover { outline-color: #9db8a9; }
+.cms-bar { position: absolute; top: 6px; right: 12px; z-index: 7; display: flex; gap: 4px; align-items: center; padding: 4px; background: #1f2a24; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.2); opacity: .25; transition: opacity .15s; }
+.cms-block:hover > .cms-bar, .cms-bar:focus-within { opacity: 1; }
+.cms-bar-name { color: #f3d48a; font-size: 12px; padding: 0 6px; }
+.cms-bar button, .cms-bar select { height: 26px; padding: 0 8px; border-radius: 5px; border: 1px solid #4b5a52; background: transparent; color: #fff; font: inherit; font-size: 12px; cursor: pointer; width: auto; }
+.cms-bar select { background: #2a3630; }
+.cms-bar button:disabled { opacity: .35; cursor: default; }
+.cms-bar .danger { color: #ffb4a6; }
+.cms-add { display: block; margin: 6px auto; height: 32px; padding: 0 18px; border-radius: 16px; border: 1px dashed #2f6b55; background: #f3f8f5; color: #2f6b55; font: inherit; font-size: 13px; cursor: pointer; }
+.cms-add:hover { background: #2f6b55; color: #fff; }
+.cms-x { position: absolute; top: 6px; right: 6px; z-index: 5; width: 26px; height: 26px; border-radius: 50%; border: 0; background: #b3392b; color: #fff; cursor: pointer; font-size: 16px; line-height: 1; }
+.faq summary { position: relative; }
+.faq .cms-x { top: -2px; right: -6px; }
+.cms-hint { font-size: 12.5px; color: #8a6a17; background: #fdf6e3; border: 1px solid #f0e0b0; border-radius: 6px; padding: 6px 10px; margin: 8px 0; }
+.cms-empty { text-align: center; color: #888; padding: 30px; }
+.cms-dialog { border: 0; border-radius: 12px; padding: 22px 24px; width: min(480px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.3); font-size: 14px; }
+.cms-dialog::backdrop { background: rgba(0,0,0,.45); }
+.cms-dialog h3 { margin: 0 0 14px; font-size: 17px; }
+.cms-dialog label { display: block; margin-bottom: 12px; font-weight: 500; }
+.cms-dialog input:not([type=checkbox]), .cms-dialog select { display: block; width: 100%; margin-top: 4px; height: 38px; }
+.cms-inline { display: flex !important; align-items: center; gap: 8px; }
+.cms-dbtns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.cms-dialog .cms-tbtn { color: #1e2723; border-color: #cfd8d3; }
+.cms-dialog .cms-tbtn:hover { background: #f3f5f4; }
+.cms-dialog .cms-primary { color: #1f2a24; }
+.cms-preview { max-height: 160px; max-width: 100%; margin: 0 auto 12px; border-radius: 8px; border: 1px solid #e3e8e5; }
+.cms-note { color: #888; font-size: 12px; }
+.cms-types { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cms-type { height: 54px; border: 1px solid #d8ddd9; border-radius: 8px; background: #fff; font: inherit; cursor: pointer; text-align: left; padding: 0 12px; }
+.cms-type:hover { border-color: #2f6b55; background: #f3f8f5; }
+@media (max-width: 760px) { .cms-tip { display: none; } .cms-toolbar { gap: 6px; padding: 0 8px; overflow-x: auto; } .cms-toolbar a[target] { display: none; } }
+
+/* 區塊操作列：常駐顯示，避免找不到 */
+.cms-bar { opacity: 1; }
+.cms-bar [data-block-op=delete] { background: #b3392b; border-color: #b3392b; color: #fff; }
+.cms-bar [data-block-op=delete]:hover { background: #962e22; }
+.cms-secbar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 8px; font-size: 12.5px; }
+.cms-secbar span { color: #8a6a17; background: #fdf6e3; border: 1px solid #f0e0b0; border-radius: 4px; padding: 1px 8px; }
+.cms-secbar button { height: 28px; padding: 0 12px; border-radius: 6px; border: 0; background: #b3392b; color: #fff; font: inherit; font-size: 12.5px; cursor: pointer; }
+.cms-secbar button:hover { background: #962e22; }
+.service-strip .cms-secbar { padding-top: 10px; }
+.cms-hidden-stub { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; padding: 10px 14px; border: 1px dashed #c9b37a; border-radius: 8px; background: repeating-linear-gradient(45deg, #fdfaf1, #fdfaf1 8px, #f8f2e1 8px, #f8f2e1 16px); color: #7a5d12; font-size: 13.5px; }
+.cms-hidden-stub button { height: 30px; padding: 0 14px; border-radius: 6px; border: 1px solid #2f6b55; background: #fff; color: #2f6b55; font: inherit; font-size: 13px; cursor: pointer; }
+.cms-hidden-stub button:hover { background: #2f6b55; color: #fff; }
+/* 編輯模式隱藏右下角浮動按鈕，避免蓋住區塊操作列 */
+.floaters { display: none !important; }
+
+.cms-slide-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; padding: 4px 8px 4px 12px; border-radius: 6px; background: #fdf6e3; border: 1px solid #f0e0b0; color: #7a5d12; font-size: 12.5px; }
+.cms-slide-bar button { height: 26px; padding: 0 10px; border: 0; border-radius: 5px; background: #b3392b; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+.cms-sub { margin: 16px 0 8px; font-size: 14px; color: #555; }
+.cms-slide-bar { justify-content: flex-start; }
+.cms-slide-bar button { order: -1; }

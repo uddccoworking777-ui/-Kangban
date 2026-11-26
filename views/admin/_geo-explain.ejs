@@ -1,0 +1,28 @@
+<%# 說明某一類 AI SEO 在做什麼（c = CATS 裡的一項） %>
+<details class="card geo-explain" <%= typeof openExplain !== 'undefined' && openExplain ? 'open' : '' %>>
+  <summary><span class="geo-tag"><%= c.name %></span> <b><%= c.full %></b> <span class="muted small"><%= c.en %></span><span class="geo-explain-toggle">這是做什麼的？</span></summary>
+  <div class="geo-explain-body">
+    <p><%= c.what %></p>
+    <div class="geo-explain-grid">
+      <div>
+        <h3>會出現在哪裡</h3>
+        <ul><% c.where.forEach(w => { %><li><%= w %></li><% }) %></ul>
+      </div>
+      <div class="geo-example">
+        <h3>實際的樣子（示意）</h3>
+        <p class="geo-q"><%= c.example.q %></p>
+        <p class="geo-a"><%= c.example.a %></p>
+      </div>
+    </div>
+    <div class="geo-explain-grid">
+      <div>
+        <h3>網站已經幫你做的</h3>
+        <ul class="geo-done"><% c.done.forEach(w => { %><li><%= w %></li><% }) %></ul>
+      </div>
+      <div>
+        <h3>你還可以做的</h3>
+        <ul><% c.todo.forEach(w => { %><li><%= w %></li><% }) %></ul>
+      </div>
+    </div>
+  </div>
+</details>

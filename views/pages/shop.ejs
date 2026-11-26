@@ -1,0 +1,66 @@
+<%- include('../partials/head') %>
+<div class="container page">
+  <nav class="crumbs"><a href="/">首頁</a> / <% if (category) { %><a href="/shop">所有產品</a> / <span><%= category.name %></span><% } else { %><span>所有產品</span><% } %></nav>
+  <div class="shop-layout">
+    <aside class="filters" id="filters">
+      <form method="get" data-filter-form>
+        <% if (search) { %><input type="hidden" name="search" value="<%= search %>"><% } %>
+        <input type="hidden" name="sort" value="<%= sort %>">
+        <h4>商品類別</h4>
+        <ul class="cat-list">
+          <li><a href="/shop" class="<%= !category ? 'active' : '' %>">所有產品</a></li>
+          <% categories.forEach(c => { %><li class="<%= c.parentId ? 'sub' : '' %>"><a href="<%= catUrl(c) %>" class="<%= category && category.id === c.id ? 'active' : '' %>"><%= c.name %></a></li><% }) %>
+        </ul>
+        <% if (brands.length) { %>
+          <h4>品牌</h4>
+          <% brands.forEach(b => { %>
+            <label class="check"><input type="checkbox" name="brand" value="<%= b.id %>" <%= brandIds.includes(b.id) ? 'checked' : '' %> data-autosubmit> <%= b.name %></label>
+          <% }) %>
+        <% } %>
+        <h4>價格</h4>
+        <div class="price-range">
+          <input type="number" name="min_price" min="0" placeholder="最低" value="<%= query.min_price || '' %>" aria-label="最低價格">
+          <span>–</span>
+          <input type="number" name="max_price" min="0" placeholder="最高" value="<%= query.max_price || '' %>" aria-label="最高價格">
+        </div>
+        <div class="filter-btns">
+          <button class="btn btn-primary btn-sm">套用篩選</button>
+          <a class="btn btn-sm btn-ghost" href="<%= category ? catUrl(category) : '/shop' %>">清除篩選器</a>
+        </div>
+      </form>
+    </aside>
+    <section>
+      <div class="shop-top">
+        <div>
+          <h1 class="h2"><%= category ? category.name : (search ? `「${search}」的搜尋結果` : '所有產品') %></h1>
+          <span class="muted"><%= result.total %> 項結果</span>
+        </div>
+      </div>
+      <% if (category && (category.seoIntro || category.description)) { %><p class="cat-intro"><%= category.seoIntro || category.description %></p><% } %>
+      <% if (settings.aio_ld !== '0') { %><script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'ItemList', name: category ? category.name : '所有產品', numberOfItems: result.total, itemListElement: result.items.map((p, i) => ({ '@type': 'ListItem', position: (result.page - 1) * 20 + i + 1, url: siteUrl + slug(p), name: p.name })) }).replace(/</g, '\\u003c') %></script><% } %>
+      <div class="shop-top shop-top-tools">
+        <div class="shop-tools">
+          <button class="btn btn-outline btn-sm only-mobile" data-toggle-filters>篩選器</button>
+          <label class="sort">排序方式：
+            <select data-sort>
+              <% Object.entries(sorts).forEach(([k, s]) => { %><option value="<%= k %>" <%= k === sort ? 'selected' : '' %>><%= s.label %></option><% }) %>
+            </select>
+          </label>
+        </div>
+      </div>
+      <% if (!result.items.length) { %>
+        <div class="empty"><p>沒有符合條件的商品。</p><a href="/shop" class="btn btn-primary">查看所有產品</a></div>
+      <% } else { %>
+        <div class="grid products"><% result.items.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %></div>
+        <% if (result.pages > 1) { %>
+          <nav class="pager">
+            <% for (let i = 1; i <= result.pages; i++) { const q = new URLSearchParams(query); q.set('page', i); %>
+              <a href="?<%= q %>" class="<%= i === result.page ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+          </nav>
+        <% } %>
+      <% } %>
+    </section>
+  </div>
+</div>
+<%- include('../partials/foot') %>

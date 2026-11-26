@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+<div class="container page auth">
+  <div class="box">
+    <h1 class="h2 center"><%= mode === 'login' ? '登入' : '註冊會員' %></h1>
+    <% if (error) { %><div class="alert"><%= error %></div><% } %>
+    <form method="post" action="/web/<%= mode %>">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input type="hidden" name="redirect" value="<%= redirect %>">
+      <% if (mode === 'signup') { %><label>姓名<input name="name" value="<%= form.name || '' %>" required autocomplete="name"></label><% } %>
+      <label>Email<input type="email" name="login" value="<%= form.login || '' %>" required autocomplete="email"></label>
+      <label>密碼<input type="password" name="password" required minlength="<%= mode === 'signup' ? 8 : 1 %>" autocomplete="<%= mode === 'login' ? 'current-password' : 'new-password' %>"></label>
+      <% if (mode === 'signup') { %><label>確認密碼<input type="password" name="confirm_password" required autocomplete="new-password"></label><% } %>
+      <button class="btn btn-primary btn-block btn-lg"><%= mode === 'login' ? '登入' : '註冊' %></button>
+    </form>
+    <p class="center muted">
+      <% if (mode === 'login') { %>還不是會員？<a href="/web/signup?redirect=<%= encodeURIComponent(redirect) %>">立即註冊</a><% } else { %>已有帳號？<a href="/web/login?redirect=<%= encodeURIComponent(redirect) %>">登入</a><% } %>
+    </p>
+    <% if (mode === 'login') { %><p class="center small muted">忘記密碼？請<a href="/contactus">聯絡客服</a>協助重設。</p><% } %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

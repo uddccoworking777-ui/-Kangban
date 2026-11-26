@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title><%= title %> | <%= settings.store_name %></title>
+<link rel="stylesheet" href="<%= asset('css/admin.css') %>"></head>
+<body class="auth-page">
+  <form method="post" class="auth-card">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <img src="/img/logo.webp" alt="<%= settings.store_name %>" height="48">
+    <h1><%= title %></h1>
+    <% if (mode === 'setup') { %><p class="muted">第一次使用，請建立「擁有者」帳號。之後可在「管理員」頁面新增員工帳號。</p><% } %>
+    <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+    <% if (mode === 'setup') { %><label>姓名<input name="name" value="<%= form.name || '' %>" required></label><% } %>
+    <label>Email<input type="email" name="email" value="<%= form.email || '' %>" required autocomplete="username" autofocus></label>
+    <label>密碼<input type="password" name="password" required autocomplete="<%= mode === 'setup' ? 'new-password' : 'current-password' %>" <%= mode === 'setup' ? 'minlength=8' : '' %>></label>
+    <% if (mode === 'setup') { %><label>確認密碼<input type="password" name="confirm" required autocomplete="new-password"></label><% } %>
+    <button class="btn btn-primary btn-block"><%= mode === 'setup' ? '建立帳號並登入' : '登入' %></button>
+    <a href="/" class="muted small">← 回到網站</a>
+  </form>
+</body></html>

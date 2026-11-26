@@ -1,0 +1,22 @@
+<% const brandName = typeof brandMap !== 'undefined' && p.brandIds[0] ? brandMap[p.brandIds[0]] : ''; %>
+<article class="pcard">
+  <a href="<%= slug(p) %>" class="pcard-img">
+    <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy" width="400" height="400" onerror="this.src='/img/logo.webp';this.classList.add('ph')">
+    <span class="pcard-tags">
+      <% if (typeof rank !== 'undefined') { %><span class="tag-rank r<%= rank %>">TOP <%= rank %></span><% } %>
+      <% if (p.soldOut) { %><span class="tag-out">已售完</span><% } else if (p.comparePrice) { %><span class="tag-sale">省 <%= money(p.comparePrice - p.price).replace('NT$ ', '$') %></span><% } %>
+    </span>
+    <% if (p.licenseNo) { %><span class="tag-med">醫療器材</span><% } %>
+  </a>
+  <button class="pcard-fav <%= wishlist.includes(p.id) ? 'on' : '' %>" data-wishlist="<%= p.id %>" aria-label="收藏 <%= p.name %>"><svg><use href="#<%= wishlist.includes(p.id) ? 'i-heart-fill' : 'i-heart' %>"/></svg></button>
+  <div class="pcard-body">
+    <% if (brandName) { %><span class="pcard-brand"><%= brandName %></span><% } %>
+    <h3 class="pcard-name"><a href="<%= slug(p) %>"><%= p.name %></a></h3>
+    <div class="pcard-price"><b><%= money(p.price) %></b><% if (p.comparePrice) { %><s><%= money(p.comparePrice) %></s><% } %></div>
+    <% if (p.soldCount > 0) { %><span class="pcard-sold">已售 <%= p.soldCount %></span><% } %>
+    <form action="/shop/cart/update" method="post" data-add-cart class="pcard-buy">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="product_id" value="<%= p.id %>">
+      <button class="btn btn-cart" <%= p.soldOut ? 'disabled' : '' %>><svg><use href="#i-cart"/></svg><%= p.soldOut ? '已售完' : '加入購物車' %></button>
+    </form>
+  </div>
+</article>

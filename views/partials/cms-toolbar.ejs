@@ -1,0 +1,66 @@
+<% if (adminUser && !editing) { %>
+  <a href="/admin/cms/edit?on=1&back=<%= encodeURIComponent(currentUrl) %>" class="cms-launch" title="直接在頁面上修改文字、圖片和按鈕">編輯此頁</a>
+<% } else if (editing) { %>
+  <link rel="stylesheet" href="<%= asset('css/editor.css') %>">
+  <div class="cms-toolbar" role="toolbar" aria-label="網站編輯工具">
+    <strong>編輯模式</strong>
+    <span class="cms-tip">點文字直接修改・點圖片更換・點按鈕改連結</span>
+    <span class="cms-status" data-cms-status></span>
+    <a href="/admin/pages" class="cms-tbtn" target="_blank" rel="noopener">頁面管理</a>
+    <a href="/admin/menus" class="cms-tbtn" target="_blank" rel="noopener">選單</a>
+    <button class="cms-tbtn" data-cms-discard>放棄修改</button>
+    <button class="cms-tbtn cms-primary" data-cms-save>儲存</button>
+    <a href="/admin/cms/edit?on=0&back=<%= encodeURIComponent(currentUrl) %>" class="cms-tbtn" data-cms-exit>完成</a>
+  </div>
+
+  <dialog class="cms-dialog" id="cms-link-dialog">
+    <form method="dialog">
+      <h3>編輯按鈕／連結</h3>
+      <label data-link-text-row>按鈕文字<input name="text"></label>
+      <label>連結網址<input name="href" placeholder="/shop 或 https://…" list="cms-targets"></label>
+      <label>或選擇站內頁面
+        <select name="pick"><option value="">— 選擇 —</option></select>
+      </label>
+      <label class="cms-inline"><input type="checkbox" name="newTab"> 在新分頁開啟</label>
+      <div class="cms-dbtns"><button value="cancel" class="cms-tbtn">取消</button><button value="ok" class="cms-tbtn cms-primary">套用</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="cms-dialog" id="cms-img-dialog">
+    <form method="dialog">
+      <h3>更換圖片</h3>
+      <img class="cms-preview" alt="">
+      <label>上傳新圖片<input type="file" name="file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+      <label>或貼上圖片網址<input name="url" placeholder="https://… 或 Google 雲端硬碟分享連結"></label>
+      <p class="cms-note" data-img-note></p>
+      <div class="cms-dbtns"><button value="cancel" class="cms-tbtn">取消</button><button value="ok" class="cms-tbtn cms-primary">套用</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="cms-dialog" id="cms-add-dialog">
+    <form method="dialog">
+      <h3>新增區塊</h3>
+      <div class="cms-types">
+        <% Object.entries(BLOCKS).filter(([k]) => k !== 'pagehead' && k !== 'sys').forEach(([k, v]) => { %><button value="<%= k %>" class="cms-type"><%= v.label %></button><% }) %>
+      </div>
+      <% if (typeof homeMissing !== 'undefined' && homeMissing.length) { %>
+        <h4 class="cms-sub">加回首頁內建區塊</h4>
+        <div class="cms-types"><% homeMissing.forEach(([id, label]) => { %><button value="sys:<%= id %>" class="cms-type"><%= label.replace('首頁：', '') %></button><% }) %></div>
+      <% } %>
+      <div class="cms-dbtns"><button value="cancel" class="cms-tbtn">取消</button></div>
+    </form>
+  </dialog>
+
+  <div class="cms-rtb" data-rtb hidden>
+    <button data-cmd="bold" title="粗體"><b>B</b></button>
+    <button data-cmd="italic" title="斜體"><i>I</i></button>
+    <button data-cmd="h2" title="標題">H2</button>
+    <button data-cmd="h3" title="小標題">H3</button>
+    <button data-cmd="p" title="一般段落">¶</button>
+    <button data-cmd="insertUnorderedList" title="項目清單">• 清單</button>
+    <button data-cmd="createLink" title="加入連結">連結</button>
+    <button data-cmd="unlink" title="移除連結">取消連結</button>
+  </div>
+  <script>window.CMS = { csrf: <%- JSON.stringify(csrf) %>, hidden: <%- JSON.stringify(E.hiddenList()) %> };</script>
+  <script src="<%= asset('js/editor.js') %>" defer></script>
+<% } %>

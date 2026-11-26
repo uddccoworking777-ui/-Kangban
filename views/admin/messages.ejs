@@ -1,0 +1,23 @@
+<%- include('_top') %>
+<div class="tabs">
+  <a href="?status=new" class="<%= status === 'new' ? 'on' : '' %>">未處理</a>
+  <a href="?status=done" class="<%= status === 'done' ? 'on' : '' %>">已處理</a>
+  <a href="?status=all" class="<%= status === 'all' ? 'on' : '' %>">全部</a>
+</div>
+<% if (!rows.length) { %><div class="card"><p class="empty">沒有訊息。</p></div><% } %>
+<% rows.forEach(m => { %>
+  <div class="card msg <%= m.status === 'new' ? 'is-new' : '' %>">
+    <div class="card-head">
+      <div><strong><%= m.name %></strong> <a href="mailto:<%= m.email %>?subject=<%= encodeURIComponent('回覆您的詢問 - ' + settings.store_name) %>"><%= m.email %></a> <% if (m.phone) { %>· <a href="tel:<%= m.phone %>"><%= m.phone %></a><% } %>
+        <% if (m.order_ref) { %>· 訂單 <a href="/admin/orders?q=<%= encodeURIComponent(m.order_ref) %>"><%= m.order_ref %></a><% } %></div>
+      <span class="muted small"><%= m.created_at %></span>
+    </div>
+    <p class="pre"><%= m.message %></p>
+    <form method="post" action="/admin/messages/<%= m.id %>" class="msg-actions">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input name="reply_note" value="<%= m.reply_note || '' %>" placeholder="處理備註（例如：已用 LINE 回覆）">
+      <% if (m.status === 'new') { %><button name="status" value="done" class="btn btn-sm btn-primary">標為已處理</button><% } else { %><button name="status" value="new" class="btn btn-sm">改回未處理</button><% } %>
+    </form>
+  </div>
+<% }) %>
+<%- include('_bottom') %>

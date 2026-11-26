@@ -1,0 +1,23 @@
+<%- include('../partials/head') %>
+<section class="page-hero"><div class="container"><h1>購物須知</h1><p>歡迎來到<%= settings.company_name %>。為讓您購物更順利，下單前請先閱讀以下說明。</p></div></section>
+<div class="container page doc">
+  <nav class="toc"><a href="#flow">訂購流程</a><a href="#pay">付款方式</a><a href="#ship">運費與配送</a><a href="#inv">發票</a><a href="#med">醫療器材購買注意事項</a></nav>
+  <section id="flow"><h2>訂購流程</h2><ol>
+    <li>瀏覽商品，選擇規格與數量後加入購物車</li><li>進入購物車確認商品，點選「結帳」</li><li>填寫收件人資料與發票資訊</li><li>選擇付款方式並完成付款</li><li>訂單成立後，系統會寄送確認信到您的 Email</li></ol></section>
+  <section id="pay"><h2>付款方式</h2><ul>
+    <li>信用卡（VISA、MasterCard、JCB）</li><li>ATM 轉帳／網路銀行：請於下單後 <%= settings.payment_deadline_days %> 天內完成付款，逾期訂單將自動取消</li><li>超商取貨付款</li></ul></section>
+  <section id="ship"><h2>運費與配送</h2>
+    <div class="table-wrap"><table class="table"><thead><tr><th>配送方式</th><th>運費</th><th>免運門檻</th></tr></thead><tbody>
+      <tr><td>宅配到府</td><td><%= money(ship.home.fee) %></td><td>單筆滿 <%= money(freeShip) %></td></tr>
+      <tr><td>超商取貨</td><td><%= money(ship.cvs.fee) %></td><td>單筆滿 <%= money(freeShip) %></td></tr></tbody></table></div>
+    <ul><li>配送範圍：台灣本島。離島地區運費與配送時間另計，請先與客服聯繫。</li>
+      <li>出貨時間：付款完成後 <%= settings.ship_days %> 個工作天內出貨（不含例假日）。預購或缺貨商品會另行通知。</li>
+      <li>出貨後會寄送出貨通知與物流單號，可依單號查詢配送進度。</li></ul></section>
+  <section id="inv"><h2>發票</h2><p>本商店一律開立電子發票。結帳時可選擇：</p><ul>
+    <li>會員載具（發票寄送至 Email）</li><li>手機條碼載具</li><li>公司統編（請填寫統一編號與公司抬頭）</li><li>捐贈發票</li></ul></section>
+  <section id="med"><h2>醫療器材購買注意事項</h2><ul>
+    <li>本商店販售之醫療器材皆領有衛生福利部醫療器材許可證，許可證字號標示於各商品頁面。</li>
+    <li>使用前請詳閱商品說明書及注意事項。如有身體不適，請諮詢醫師或藥師。</li>
+    <li>醫療器材販賣業藥商許可執照：<%= settings.license_no %></li></ul></section>
+</div>
+<%- include('../partials/foot') %>

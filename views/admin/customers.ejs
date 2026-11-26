@@ -1,0 +1,20 @@
+<%- include('_top', { title: '顧客', actions: `<a class="btn" href="/admin/customers.csv">匯出 CSV</a>` }) %>
+<form class="filters" method="get"><input type="search" name="q" value="<%= query.q || '' %>" placeholder="姓名、Email、電話"><button class="btn">搜尋</button></form>
+<div class="card flush">
+  <% if (!rows.length) { %><p class="empty">還沒有客戶。客戶下單或註冊後會出現在這裡。</p><% } else { %>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>姓名</th><th>Email / 電話</th><th>類型</th><th class="r">訂單數</th><th class="r">累計消費</th><th>最近下單</th></tr></thead>
+    <tbody><% rows.forEach(c => { %>
+      <tr class="row-link" data-href="/admin/customers/<%= c.id %>">
+        <td><a href="/admin/customers/<%= c.id %>"><strong><%= c.name %></strong></a></td>
+        <td><%= c.email %><div class="muted small"><%= c.phone || '' %></div></td>
+        <td><span class="lbl <%= c.member ? 'lbl-ok' : '' %>"><%= c.member ? '會員' : '訪客' %></span></td>
+        <td class="r"><%= c.orders %></td>
+        <td class="r nowrap"><%= money(c.spent) %></td>
+        <td class="nowrap small"><%= c.last_order ? c.last_order.slice(0, 10) : '—' %></td>
+      </tr><% }) %>
+    </tbody>
+  </table></div><% } %>
+</div>
+<%- include('_pager') %>
+<%- include('_bottom') %>

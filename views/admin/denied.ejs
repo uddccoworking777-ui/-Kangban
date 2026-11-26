@@ -1,0 +1,3 @@
+<%- include('_top') %>
+<div class="card center"><h2><%= typeof notFound !== 'undefined' ? '找不到頁面' : '權限不足' %></h2><p class="muted"><%= typeof notFound !== 'undefined' ? '這個頁面不存在。' : '這個頁面只有「擁有者」可以使用。' %></p><a href="/admin" class="btn btn-primary">回到儀表板</a></div>
+<%- include('_bottom') %>

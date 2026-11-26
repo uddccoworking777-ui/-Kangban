@@ -1,0 +1,33 @@
+<%- include('../partials/head') %>
+<section class="page-hero"><div class="container"><h1>關於我們</h1><p>讓健康，成為生活的日常</p></div></section>
+<div class="container page doc">
+  <nav class="toc"><a href="#story">讓健康，成為生活的日常</a><a href="#values">我們的堅持</a><a href="#info">公司資訊</a></nav>
+  <section id="story">
+    <h2>讓健康，成為生活的日常</h2>
+    <p><%= settings.company_name %>成立於<%= settings.founded_year %>，專注於健康照護與居家保健用品。我們相信，照顧健康不該是複雜的事，而是融入每一天的生活。</p>
+    <p>不論是為自己挑選日常保健用品，還是為家中長輩準備居家照護用品，我們希望提供清楚的資訊與可靠的商品，讓您選得安心、用得放心。</p>
+  </section>
+  <section id="values">
+    <h2>我們的堅持</h2>
+    <div class="grid features">
+      <div class="feature"><img src="/img/01_professional-selection.webp" alt="" loading="lazy"><h3>專業選品</h3><p>每一件商品上架前，都經過我們審核來源與資格。醫療器材類商品皆領有衛生福利部許可證，許可證字號標示於商品頁面，歡迎查詢。</p></div>
+      <div class="feature"><img src="/img/02_quality-assurance.webp" alt="" loading="lazy"><h3>品質安心</h3><p>我們與<%= settings.partner_brands_text %>等品牌合作，商品來源清楚，品質穩定。</p></div>
+      <div class="feature"><img src="/img/03_caring-support.webp" alt="" loading="lazy"><h3>貼心照護</h3><p>不確定哪一款適合自己？歡迎透過 LINE 或客服信箱詢問，我們會依您的需求提供選購建議。</p></div>
+      <div class="feature"><img src="/img/04_diverse-choices.webp" alt="" loading="lazy"><h3>多元選擇</h3><p>從身體護具、睡眠放鬆、健康量測，到居家照護與個人照護用品，一站找到生活所需。</p></div>
+    </div>
+  </section>
+  <section id="info">
+    <h2>公司資訊</h2>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>項目</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td>公司名稱</td><td><%= settings.company_name %></td></tr>
+        <tr><td>統一編號</td><td><%= settings.tax_id %></td></tr>
+        <tr><td>醫療器材販賣業藥商許可執照</td><td><%= settings.license_no %></td></tr>
+        <tr><td>公司地址</td><td><%= settings.address %></td></tr>
+        <tr><td>客服電話</td><td><%= settings.phone %></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+<%- include('../partials/foot') %>

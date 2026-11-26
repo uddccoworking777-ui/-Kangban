@@ -1,0 +1,73 @@
+<%- include('_top', { actions: `<a class="btn" href="/admin/cms/edit?on=1&back=/">在前台編輯首頁</a>` }) %>
+<div class="cols cols-wide">
+  <div class="card flush">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>頁面</th><th>網址</th><th>狀態</th><th>最後修改</th><th></th></tr></thead>
+      <tbody>
+      <% rows.forEach(p => { %>
+        <tr>
+          <td><b><%= p.title %></b><% if (p.system) { %><div class="faint small"><%= p.slug === 'home' ? '首頁下方的自訂區塊' : '內建頁面（不能刪除）' %></div><% } %></td>
+          <td><a href="<%= p.url %>" target="_blank" rel="noopener" class="small"><%= p.url %></a></td>
+          <td><span class="st <%= p.published ? 'st-on' : 'st-off' %>"><%= p.published ? '已發佈' : '草稿' %></span></td>
+          <td class="small muted nowrap"><%= p.updated_at.slice(0, 16) %></td>
+          <td class="nowrap r">
+            <a class="btn btn-sm btn-primary" href="/admin/cms/edit?on=1&back=<%= encodeURIComponent(p.url) %>">編輯內容</a>
+            <% if (p.slug !== 'home') { %><button class="btn btn-sm" type="button" data-toggle-row="pg<%= p.id %>">設定</button><% } %>
+          </td>
+        </tr>
+        <% if (p.slug !== 'home') { %>
+        <tr id="pg<%= p.id %>" hidden><td colspan="5" style="background:#fafaf8">
+          <form method="post" action="/admin/pages/<%= p.id %>" class="grid3">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <label>頁面名稱<input name="title" value="<%= p.title %>" required></label>
+            <label>網址<% if (p.system) { %><input value="/<%= p.slug %>" disabled><% } else { %><span class="hint">/p/ 後面的部分，小寫英文、數字、「-」</span><input name="slug" value="<%= p.slug %>" required pattern="[a-z0-9]+(-[a-z0-9]+)*"><% } %></label>
+            <label>搜尋引擎描述（選填）<input name="meta_description" value="<%= p.meta_description || '' %>" placeholder="Google 搜尋結果顯示的說明"></label>
+            <label class="inline check-line"><input type="checkbox" name="published" value="1" <%= p.published ? 'checked' : '' %>> 發佈（顧客看得到）</label>
+            <div style="display:flex;gap:8px;align-items:center;grid-column:1/-1">
+              <button class="btn btn-primary btn-sm">儲存設定</button>
+            </div>
+          </form>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <form method="post" action="/admin/pages/<%= p.id %>/menu" class="inline-form" style="display:flex;gap:6px;align-items:center">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <select name="location" style="width:auto;height:28px"><option value="header">頁首選單</option><option value="util">頂部服務列</option><option value="footer1">頁尾「客戶服務」</option><option value="footer2">頁尾「購物說明」</option></select>
+              <button class="btn btn-sm">加入選單</button>
+            </form>
+            <% if (!p.system) { %><form method="post" action="/admin/pages/<%= p.id %>/delete" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger" data-confirm="確定刪除「<%= p.title %>」？選單中指向這頁的連結也會移除。">刪除頁面</button></form><% } %>
+          </div>
+        </td></tr>
+        <% } %>
+      <% }) %>
+      </tbody>
+    </table></div>
+  </div>
+  <div>
+    <form class="card" method="post" action="/admin/pages">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <h2>新增頁面</h2>
+      <label>頁面名稱<input name="title" required placeholder="例：夏季優惠活動"></label>
+      <label>網址<span class="hint">網址會是 /p/ 加上這裡填的文字</span><input name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="summer-sale"></label>
+      <label>版型
+        <select name="template">
+          <option value="article">文章頁（標題＋文字）</option>
+          <option value="landing">活動頁（橫幅＋卡片＋商品＋按鈕）</option>
+          <option value="blank">空白頁</option>
+        </select>
+      </label>
+      <button class="btn btn-primary btn-block">建立並開始編輯</button>
+      <p class="hint">新頁面預設為「草稿」，編輯完成後到「設定」勾選發佈，再「加入選單」讓顧客找得到。</p>
+    </form>
+    <div class="card">
+      <h2>怎麼編輯</h2>
+      <ol class="small" style="padding-left:1.2em;margin:0">
+        <li>按「編輯內容」，會在前台開啟編輯模式</li>
+        <li>點文字直接修改；點圖片更換；點按鈕修改文字和連結</li>
+        <li>用「＋ 新增區塊」加入橫幅、圖文、卡片、商品列、常見問答等</li>
+        <li>按上方的「儲存」（或 Ctrl＋S）</li>
+      </ol>
+      <p class="hint" style="margin-top:8px">文字中的 <code>{{company_name}}</code>、<code>{{phone}}</code> 這類代碼會自動換成「商店設定」裡的資料。</p>
+    </div>
+  </div>
+</div>
+<script>document.querySelectorAll('[data-toggle-row]').forEach(b => b.addEventListener('click', () => { const r = document.getElementById(b.dataset.toggleRow); r.hidden = !r.hidden; }));</script>
+<%- include('_bottom') %>

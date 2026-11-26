@@ -1,0 +1,41 @@
+<%- include('../partials/head') %>
+<% const err = (k) => errors[k] ? `<span class="err">${errors[k]}</span>` : ''; %>
+<div class="container page">
+  <h1 class="h2">聯絡我們</h1>
+  <p>對商品、訂單或選購有任何問題，歡迎隨時與我們聯繫。我們會在 <%= settings.reply_days %> 個工作天內回覆。</p>
+  <div class="cart-layout">
+    <div>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>管道</th><th>資訊</th></tr></thead>
+        <tbody>
+          <tr><td>LINE 官方帳號</td><td><%= settings.line_id %>（推薦，回覆最快）</td></tr>
+          <tr><td>客服電話</td><td><%= settings.phone %></td></tr>
+          <tr><td>客服信箱</td><td><%= settings.email %></td></tr>
+          <tr><td>公司地址</td><td><%= settings.address %></td></tr>
+        </tbody>
+      </table></div>
+      <h3>客服時間</h3>
+      <p><%= settings.service_hours %>（國定假日休息）。非上班時間的留言，會於下一個工作天依序回覆。</p>
+      <div class="box soft">
+        <h3>選購諮詢小提醒</h3>
+        <p>詢問護具尺寸時，請先量好對應部位的尺寸（例如膝蓋上方 10 公分處的周長），客服可以更快為您推薦合適的尺碼。體重、身高資訊可以供參考。</p>
+        <p>若您的問題涉及疾病診斷或治療，請諮詢醫師或藥師。</p>
+      </div>
+    </div>
+    <aside class="summary">
+      <h3>線上表單</h3>
+      <p class="small muted">您也可以填寫下方表單，我們會盡快與您聯繫。詢問訂單相關問題時，請一併提供訂單編號。</p>
+      <form method="post">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label>姓名 *<input name="name" value="<%= form.name || '' %>" required autocomplete="name"><%- err('name') %></label>
+        <label>Email *<input type="email" name="email" value="<%= form.email || '' %>" required autocomplete="email"><%- err('email') %></label>
+        <label>電話<input name="phone" value="<%= form.phone || '' %>" autocomplete="tel"></label>
+        <label>訂單編號（選填）<input name="order_ref" value="<%= form.order_ref || '' %>"></label>
+        <label>問題內容 *<textarea name="message" rows="5" required><%= form.message || '' %></textarea><%- err('message') %></label>
+        <button class="btn btn-primary btn-block">送出</button>
+      </form>
+    </aside>
+  </div>
+</div>
+<%- include('../partials/foot') %>

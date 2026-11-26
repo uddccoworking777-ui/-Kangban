@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8"><title>出貨單</title>
+<style>
+body{font:13px/1.5 "PingFang TC","Microsoft JhengHei",sans-serif;color:#000;margin:0;background:#eee}
+.sheet{background:#fff;width:210mm;min-height:148mm;margin:10mm auto;padding:12mm 14mm;box-sizing:border-box;page-break-after:always}
+.sheet:last-child{page-break-after:auto}
+header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:10px}
+h1{font-size:20px;margin:0}
+.meta{text-align:right;font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px}
+.two h2{font-size:12px;margin:0 0 2px;color:#555;font-weight:normal}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+th,td{border:1px solid #999;padding:5px 7px;text-align:left}
+th{background:#f2f2f2;font-weight:normal}
+.r{text-align:right}
+.note{margin-top:10px;border:1px dashed #999;padding:6px 8px}
+footer{margin-top:12px;font-size:11px;color:#555}
+.bar{text-align:center;padding:10px}
+@media print{body{background:#fff}.sheet{margin:0;width:auto;min-height:0}.bar{display:none}}
+</style></head>
+<body>
+<div class="bar"><button onclick="print()">列印</button> 共 <%= orders.length %> 張出貨單</div>
+<% orders.forEach(o => { %>
+<section class="sheet">
+  <header><div><h1>出貨單</h1><div><%= settings.store_name %></div></div><div class="meta">訂單編號 <b><%= o.name %></b><br>下單日期 <%= o.created_at.slice(0, 10) %><br>列印日期 <%= new Date().toLocaleDateString('zh-TW') %></div></header>
+  <div class="two">
+    <div><h2>收件人</h2><b><%= o.customer_name %></b>　<%= o.phone %><br><%= o.cvs_store ? '超商取貨：' + o.cvs_store : `${o.zip} ${o.city}${o.street}` %></div>
+    <div><h2>配送／付款</h2><%= SHIPPING[o.shipping_method] %><% if (o.tracking_number) { %>（單號 <%= o.tracking_number %>）<% } %><br><%= PAYMENTS[o.payment_method] %>・<%= PAYMENT_STATUS[o.payment_status] %><% if (o.payment_method === 'cod' && o.payment_status !== 'paid') { %><br><b>代收金額 <%= money(o.total) %></b><% } %></div>
+  </div>
+  <table>
+    <thead><tr><th style="width:36px">核對</th><th>商品</th><th>貨號</th><th class="r">數量</th><th class="r">單價</th><th class="r">小計</th></tr></thead>
+    <tbody><% o.items.forEach(i => { %><tr><td></td><td><%= i.name %></td><td><%= i.sku %></td><td class="r"><%= i.qty %></td><td class="r"><%= money(i.price) %></td><td class="r"><%= money(i.subtotal) %></td></tr><% }) %></tbody>
+    <tfoot><tr><td colspan="5" class="r">運費</td><td class="r"><%= money(o.shipping_fee) %></td></tr><tr><td colspan="5" class="r"><b>總計</b></td><td class="r"><b><%= money(o.total) %></b></td></tr></tfoot>
+  </table>
+  <% if (o.note) { %><div class="note">顧客備註：<%= o.note %></div><% } %>
+  <footer><%= settings.company_name %>・客服 <%= settings.phone %>・<%= settings.email %><br>醫療器材使用前請詳閱說明書。到貨 7 天內享鑑賞期，退換貨請聯繫客服並提供訂單編號。</footer>
+</section>
+<% }) %>
+<script>if (location.hash !== '#noprint') setTimeout(() => print(), 400);</script>
+</body></html>

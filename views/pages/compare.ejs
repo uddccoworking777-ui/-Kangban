@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="container page">
+  <h1 class="h2">比較商品</h1>
+  <% if (!products.length) { %>
+    <div class="empty"><p>尚未加入要比較的商品（最多 4 項）。</p><a href="/shop" class="btn btn-primary">去逛逛</a></div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="compare">
+        <tr><th></th><% products.forEach(p => { %><td><a href="<%= slug(p) %>"><img src="<%= p.image %>" alt="" width="140"></a><br><a href="<%= slug(p) %>"><strong><%= p.name %></strong></a><br><button class="link-btn" data-compare="<%= p.id %>" data-reload>移除</button></td><% }) %></tr>
+        <tr><th>價格</th><% products.forEach(p => { %><td class="price"><%= money(p.price) %></td><% }) %></tr>
+        <tr><th>分類</th><% products.forEach(p => { %><td><%= categories.filter(c => p.categoryIds.includes(c.id)).map(c => c.name).join('、') %></td><% }) %></tr>
+        <tr><th>品牌</th><% products.forEach(p => { %><td><%= brands.filter(b => p.brandIds.includes(b.id)).map(b => b.name).join('、') || '—' %></td><% }) %></tr>
+        <tr><th>說明</th><% products.forEach(p => { %><td class="small"><%= p.description %></td><% }) %></tr>
+        <tr><th></th><% products.forEach(p => { %><td><form action="/shop/cart/update" method="post" data-add-cart><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="product_id" value="<%= p.id %>"><button class="btn btn-primary btn-sm">加入購物車</button></form></td><% }) %></tr>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,68 @@
+<%- include('_top', { actions: `<div class="seg">${[7, 30, 90].map(r => `<a href="?range=${r}" class="${r === range ? 'on' : ''}">近 ${r} 天</a>`).join('')}</div>` }) %>
+<div class="todo">
+  <a href="/admin/orders?todo=payment"><span>待確認付款</span><b class="<%= todo.awaitingPayment ? '' : 'zero' %>"><%= todo.awaitingPayment %></b></a>
+  <a href="/admin/orders?todo=ship"><span>待出貨</span><b class="<%= todo.toShip ? '' : 'zero' %>"><%= todo.toShip %></b></a>
+  <a href="/admin/messages"><span>未處理客服訊息</span><b class="<%= todo.messages ? '' : 'zero' %>"><%= todo.messages %></b></a>
+  <a href="/admin/products?status=low"><span>低庫存商品</span><b class="<%= todo.lowStock ? '' : 'zero' %>"><%= todo.lowStock %></b></a>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2>營收（近 <%= range %> 天）</h2><span class="muted small">不含已取消訂單</span></div>
+  <% const diff = lastMonth.v ? Math.round((month.v - lastMonth.v) / lastMonth.v * 100) : null; %>
+  <div class="stats">
+    <div><span>期間營收</span><b><%= money(rangeTotal) %></b><small><%= rangeCount %> 筆訂單</small></div>
+    <div><span>今日</span><b><%= money(today.v) %></b><small><%= today.n %> 筆</small></div>
+    <div><span>本月</span><b><%= money(month.v) %></b><small><% if (diff !== null) { %>較上月 <%= diff >= 0 ? '+' : '' %><%= diff %>%<% } else { %>上月無資料<% } %></small></div>
+    <div><span>本月平均客單價</span><b><%= money(month.n ? month.v / month.n : 0) %></b><small>顧客總數 <%= customers %></small></div>
+  </div>
+  <% const W = 900, H = 200, padL = 56, padB = 24, padT = 8;
+     const max = Math.max(0, ...series.map(d => d.v));
+     const step = max > 0 ? Math.pow(10, Math.floor(Math.log10(max))) : 1000; const top = max > 0 ? Math.ceil(max / step) * step : 1000;
+     const bw = (W - padL) / series.length; const y = v => padT + (H - padT - padB) * (1 - v / top);
+     const every = series.length > 40 ? 15 : series.length > 10 ? 5 : 1; %>
+  <div class="chart" data-chart>
+    <svg viewBox="0 0 <%= W %> <%= H %>" role="img" aria-label="近 <%= range %> 天每日營收長條圖">
+      <% [0, .5, 1].forEach(t => { const v = top * t; %>
+        <line x1="<%= padL %>" x2="<%= W %>" y1="<%= y(v) %>" y2="<%= y(v) %>" class="grid"/>
+        <text x="<%= padL - 8 %>" y="<%= y(v) + 4 %>" text-anchor="end" class="axis"><%= v >= 10000 ? (v / 10000) + ' 萬' : Math.round(v).toLocaleString() %></text>
+      <% }) %>
+      <% series.forEach((d, i) => { const x = padL + i * bw + 1, w = Math.max(1.5, bw - 2), h = H - padB - y(d.v), r = Math.min(4, w / 2, h); %>
+        <g class="bar-g" data-tip="<%= d.d %>｜<%= money(d.v) %>｜<%= d.n %> 筆">
+          <rect x="<%= padL + i * bw %>" y="<%= padT %>" width="<%= bw %>" height="<%= H - padT - padB %>" class="hit"/>
+          <% if (d.v > 0) { %><path class="bar" d="M<%= x %>,<%= H - padB %>V<%= y(d.v) + r %>q0,-<%= r %> <%= r %>,-<%= r %>h<%= w - 2 * r %>q<%= r %>,0 <%= r %>,<%= r %>V<%= H - padB %>z"/><% } %>
+        </g>
+        <% if ((series.length - 1 - i) % every === 0) { %><text x="<%= padL + i * bw + bw / 2 %>" y="<%= H - 6 %>" text-anchor="middle" class="axis"><%= d.d.slice(5).replace('-', '/') %></text><% } %>
+      <% }) %>
+      <line x1="<%= padL %>" x2="<%= W %>" y1="<%= H - padB %>" y2="<%= H - padB %>" class="baseline"/>
+    </svg>
+    <div class="tip" hidden></div>
+  </div>
+  <details class="more small"><summary>以表格檢視</summary>
+    <div class="table-wrap"><table class="table"><thead><tr><th>日期</th><th class="r">營收</th><th class="r">訂單數</th></tr></thead>
+    <tbody><% series.filter(d => d.n).reverse().forEach(d => { %><tr><td><%= d.d %></td><td class="r num"><%= money(d.v) %></td><td class="r num"><%= d.n %></td></tr><% }) %></tbody></table></div>
+  </details>
+</div>
+
+<div class="cols">
+  <div class="card flush">
+    <div class="card-head"><h2>最新訂單</h2><a href="/admin/orders" class="small">查看全部</a></div>
+    <% if (!recent.length) { %><p class="empty">目前沒有訂單</p><% } else { %>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>訂單</th><th>顧客</th><th>狀態</th><th class="r">金額</th></tr></thead>
+      <tbody><% recent.forEach(o => { %><tr class="row-link" data-href="/admin/orders/<%= o.id %>"><td><a href="/admin/orders/<%= o.id %>"><%= o.name %></a><div class="faint small"><%= o.created_at.slice(5, 16) %></div></td><td><%= o.customer_name %></td><td><%- include('_status', { s: o.status }) %></td><td class="r num"><%= money(o.total) %></td></tr><% }) %></tbody>
+    </table></div><% } %>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-head"><h2>熱銷商品（近 <%= range %> 天）</h2></div>
+      <% if (!top.length) { %><p class="muted small">期間內沒有銷售資料</p><% } else { %>
+      <ul class="list"><% top.forEach((t, i) => { %><li><span class="n"><%= i + 1 %></span><span style="flex:1"><%= t.name %></span><span class="muted num small"><%= t.qty %> 件・<%= money(t.amount) %></span></li><% }) %></ul><% } %>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>低庫存</h2><a href="/admin/products?status=low" class="small">查看全部</a></div>
+      <% if (!lowStock.length) { %><p class="muted small">沒有低於 <%= settings.low_stock_threshold %> 件的商品</p><% } else { %>
+      <ul class="list"><% lowStock.forEach(p => { %><li><a href="/admin/products/<%= p.id %>"><%= p.name %></a><span class="lbl <%= p.stock <= 0 ? 'lbl-bad' : 'lbl-warn' %>"><%= p.stock <= 0 ? '已售完' : '剩 ' + p.stock %></span></li><% }) %></ul><% } %>
+    </div>
+  </div>
+</div>
+<%- include('_bottom') %>

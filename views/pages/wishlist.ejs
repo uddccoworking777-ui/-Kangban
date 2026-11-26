@@ -1,0 +1,10 @@
+<%- include('../partials/head') %>
+<div class="container page">
+  <h1 class="h2">願望清單</h1>
+  <% if (!products.length) { %>
+    <div class="empty"><p>您的願望清單是空的。在商品上點選 ♡ 即可收藏。</p><a href="/shop" class="btn btn-primary">去逛逛</a></div>
+  <% } else { %>
+    <div class="grid products"><% products.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %></div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

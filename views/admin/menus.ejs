@@ -1,0 +1,44 @@
+<%- include('_top', {}) %>
+<datalist id="link-targets"><% pages.forEach(p => { %><option value="<%= p.url %>"><%= p.title %></option><% }) %><option value="/shop">所有商品</option><option value="/contactus">聯絡我們</option><option value="/order-lookup">訂單查詢</option><option value="/my">會員中心</option></datalist>
+<p class="muted small">頁首商品分類列的分類項目由「商品 → 分類」自動產生；這裡管理其他連結。連結可以填站內網址（/ 開頭）或外部網址（https:// 開頭）。</p>
+<% groups.forEach(g => { %>
+  <div class="card flush" id="<%= g.loc %>">
+    <div class="card-head"><h2><%= g.label %></h2></div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th style="width:30%">名稱</th><th>連結</th><th>新分頁</th><th class="r">順序／操作</th></tr></thead>
+      <tbody>
+        <% const rowsOf = (items, depth) => items.forEach((m, i) => { %>
+          <tr>
+            <td colspan="3">
+              <form method="post" action="/admin/menus/<%= m.id %>" style="display:grid;grid-template-columns:30% 1fr 70px auto;gap:8px;align-items:center" id="mf<%= m.id %>">
+                <input type="hidden" name="_csrf" value="<%= csrf %>">
+                <input name="label" value="<%= m.label %>" style="<%= depth ? 'margin-left:18px;width:calc(100% - 18px)' : '' %>" aria-label="名稱">
+                <input name="url" value="<%= m.url %>" list="link-targets" aria-label="連結">
+                <label class="inline" style="justify-content:center"><input type="checkbox" name="new_tab" value="1" <%= m.new_tab ? 'checked' : '' %>></label>
+                <button class="btn btn-sm">儲存</button>
+              </form>
+            </td>
+            <td class="r nowrap">
+              <form method="post" action="/admin/menus/<%= m.id %>" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>">
+                <button name="action" value="up" class="btn btn-sm btn-ghost" <%= i === 0 ? 'disabled' : '' %> aria-label="上移">↑</button>
+                <button name="action" value="down" class="btn btn-sm btn-ghost" <%= i === items.length - 1 ? 'disabled' : '' %> aria-label="下移">↓</button>
+                <button name="action" value="delete" class="btn btn-sm btn-ghost danger" data-confirm="刪除「<%= m.label %>」<%= m.children && m.children.length ? '及其下拉項目' : '' %>？">刪除</button>
+              </form>
+            </td>
+          </tr>
+          <% if (m.children) rowsOf(m.children, depth + 1); %>
+        <% }); rowsOf(g.items, 0); %>
+        <% if (!g.items.length) { %><tr><td colspan="4" class="muted small">目前沒有項目</td></tr><% } %>
+      </tbody>
+    </table></div>
+    <form method="post" action="/admin/menus" class="pad" style="display:grid;grid-template-columns:1fr 1.4fr auto auto auto;gap:8px;align-items:center;border-top:1px solid var(--line-soft)">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="location" value="<%= g.loc %>">
+      <input name="label" placeholder="新項目名稱" required>
+      <input name="url" placeholder="/p/頁面 或 https://…" list="link-targets" required>
+      <% if (g.loc === 'header') { %><select name="parent_id" style="width:auto"><option value="">最上層</option><% g.items.forEach(m => { %><option value="<%= m.id %>">放在「<%= m.label %>」下拉選單</option><% }) %></select><% } else { %><span></span><% } %>
+      <label class="inline"><input type="checkbox" name="new_tab" value="1"> 新分頁</label>
+      <button class="btn btn-primary btn-sm">新增</button>
+    </form>
+  </div>
+<% }) %>
+<%- include('_bottom') %>
